@@ -100,11 +100,14 @@ export default function AdminPortalModal({
     e.preventDefault();
     setAuthError('');
 
-    if (username.trim() === 'admin' && password.trim() === 'ttdadmin123') {
+    const expectedUser = import.meta.env.VITE_ADMIN_USER || 'ttd_master_admin';
+    const expectedPass = import.meta.env.VITE_ADMIN_PASS || 'Tirumala#Divya2026!Secured';
+
+    if (username.trim() === expectedUser && password.trim() === expectedPass) {
       setIsAdminLoggedIn(true);
       onClose();
     } else {
-      setAuthError(lang === 'en' ? 'Invalid credentials! (Demo: admin / ttdadmin123)' : 'అనుమతి నిరాకరించబడింది!');
+      setAuthError(lang === 'en' ? 'Invalid credentials! Please check your Admin username and password.' : 'అనుమతి నిరాకరించబడింది!');
     }
   };
 
