@@ -34,9 +34,8 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
 
   const [activeMonthIndex, setActiveMonthIndex] = useState(defaultCurrentIndex);
   
-  // Touch Swipe gesture support using native event listeners & useRef
+  // Touch & Mouse Pointer Drag Swipe gesture support
   const gridContainerRef = useRef(null);
-  const touchState = useRef({ startX: 0, startY: 0, endX: 0, endY: 0, active: false });
   const activeIndexRef = useRef(activeMonthIndex);
 
   useEffect(() => {
@@ -47,31 +46,36 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
     const el = gridContainerRef.current;
     if (!el) return;
 
-    const onTouchStart = (e) => {
-      if (e.touches && e.touches.length === 1) {
-        touchState.current.startX = e.touches[0].clientX;
-        touchState.current.startY = e.touches[0].clientY;
-        touchState.current.endX = e.touches[0].clientX;
-        touchState.current.endY = e.touches[0].clientY;
-        touchState.current.active = true;
-      }
+    let isPointerDown = false;
+    let startX = 0;
+    let startY = 0;
+    let endX = 0;
+    let endY = 0;
+
+    const onPointerDown = (e) => {
+      if (e.target.closest('button') || e.target.closest('select') || e.target.closest('a')) return;
+      isPointerDown = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      endX = e.clientX;
+      endY = e.clientY;
     };
 
-    const onTouchMove = (e) => {
-      if (!touchState.current.active || !e.touches || e.touches.length === 0) return;
-      touchState.current.endX = e.touches[0].clientX;
-      touchState.current.endY = e.touches[0].clientY;
+    const onPointerMove = (e) => {
+      if (!isPointerDown) return;
+      endX = e.clientX;
+      endY = e.clientY;
     };
 
-    const onTouchEnd = () => {
-      if (!touchState.current.active) return;
-      touchState.current.active = false;
+    const onPointerUp = () => {
+      if (!isPointerDown) return;
+      isPointerDown = false;
 
-      const diffX = touchState.current.startX - touchState.current.endX;
-      const diffY = touchState.current.startY - touchState.current.endY;
+      const diffX = startX - endX;
+      const diffY = startY - endY;
 
-      // Minimum swipe distance 25px, horizontal movement greater than vertical
-      if (Math.abs(diffX) > 25 && Math.abs(diffX) > Math.abs(diffY)) {
+      // Minimum drag/swipe distance 30px, horizontal movement greater than vertical
+      if (Math.abs(diffX) > 30 && Math.abs(diffX) > Math.abs(diffY)) {
         if (diffX > 0) {
           // Swipe Left -> Next Month
           if (activeIndexRef.current < MONTHS_LIST.length - 1) {
@@ -86,14 +90,29 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
       }
     };
 
-    el.addEventListener('touchstart', onTouchStart, { passive: true });
-    el.addEventListener('touchmove', onTouchMove, { passive: true });
-    el.addEventListener('touchend', onTouchEnd, { passive: true });
+    const onKeyDown = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+      if (e.key === 'ArrowLeft') {
+        if (activeIndexRef.current > 0) {
+          setActiveMonthIndex(prev => prev - 1);
+        }
+      } else if (e.key === 'ArrowRight') {
+        if (activeIndexRef.current < MONTHS_LIST.length - 1) {
+          setActiveMonthIndex(prev => prev + 1);
+        }
+      }
+    };
+
+    el.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('keydown', onKeyDown);
 
     return () => {
-      el.removeEventListener('touchstart', onTouchStart);
-      el.removeEventListener('touchmove', onTouchMove);
-      el.removeEventListener('touchend', onTouchEnd);
+      el.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('keydown', onKeyDown);
     };
   }, [MONTHS_LIST.length]);
 
@@ -114,31 +133,31 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
   return (
     <div className="space-y-4">
       {/* Month Navigation Toolbar */}
-      <div className="glass-card p-4 border-2 border-[#D4AF37]/50 flex flex-wrap items-center justify-between gap-3 bg-[#0B0E14] shadow-2xl">
+      <div className="glass-card p-3 sm:p-4 border-2 border-[#D4AF37]/50 flex flex-wrap items-center justify-between gap-3 bg-[#0B0E14] shadow-2xl">
         
         {/* Current Month Title */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD700] to-[#FF5722] p-0.5 flex items-center justify-center text-black font-extrabold shadow-md">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD700] to-[#FF5722] p-0.5 flex items-center justify-center text-black font-extrabold shadow-md shrink-0">
             <CalendarIcon className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-serif text-2xl sm:text-3xl font-extrabold gold-gradient-text">
+            <h3 className="font-serif text-xl sm:text-3xl font-extrabold gold-gradient-text">
               {lang === 'en' ? activeMonth.label : activeMonth.labelTe}
             </h3>
-            <p className="text-[11px] text-[#94A3B8]">
-              {lang === 'en' ? '👈 Swipe left/right on grid or tap side arrows to change months 👉' : 'నెలల వారీగా తిప్పడానికి పక్కకు జరపండి లేదా బాణం గుర్తును నొక్కండి'}
+            <p className="text-[10px] sm:text-[11px] text-[#94A3B8]">
+              {lang === 'en' ? '👈 Swipe or drag left/right or use arrow keys 👉' : 'పక్కకు జరపండి లేదా బాణం గుర్తును నొక్కండి'}
             </p>
           </div>
         </div>
 
-        {/* Month Dropdown & Prev/Next Controls */}
-        <div className="flex items-center gap-2">
+        {/* Month Dropdown & Prev/Next Controls - RESPONSIVE WRAPPING PREVENTS OVERFLOW */}
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 w-full sm:w-auto justify-between sm:justify-end">
           
           {/* Direct Month Select Dropdown */}
           <select
             value={activeMonthIndex}
             onChange={(e) => setActiveMonthIndex(Number(e.target.value))}
-            className="px-3 py-2.5 rounded-xl bg-[#141923] border border-[#D4AF37]/60 text-[#FFD700] text-xs font-extrabold focus:outline-none focus:ring-2 focus:ring-[#FFD700]"
+            className="flex-1 sm:flex-initial min-w-[130px] px-2.5 py-2 rounded-xl bg-[#141923] border border-[#D4AF37]/60 text-[#FFD700] text-xs font-extrabold focus:outline-none focus:ring-2 focus:ring-[#FFD700]"
           >
             {MONTHS_LIST.map((m, idx) => (
               <option key={idx} value={idx}>
@@ -147,35 +166,37 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
             ))}
           </select>
 
-          {/* PREVIOUS MONTH BUTTON */}
-          <button
-            type="button"
-            onClick={handlePrevMonth}
-            disabled={activeMonthIndex === 0}
-            className={`px-3.5 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all shadow-md ${
-              activeMonthIndex === 0
-                ? 'opacity-40 cursor-not-allowed bg-[#141923] text-[#94A3B8] border border-white/10'
-                : 'bg-[#141923] text-[#FFD700] border-2 border-[#D4AF37] hover:bg-[#D4AF37]/20 active:scale-95'
-            }`}
-          >
-            <ChevronLeft className="w-4 h-4 text-[#FFD700]" />
-            <span>{lang === 'en' ? 'Prev' : 'గత'}</span>
-          </button>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* PREVIOUS MONTH BUTTON */}
+            <button
+              type="button"
+              onClick={handlePrevMonth}
+              disabled={activeMonthIndex === 0}
+              className={`px-3 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1 transition-all shadow-md ${
+                activeMonthIndex === 0
+                  ? 'opacity-40 cursor-not-allowed bg-[#141923] text-[#94A3B8] border border-white/10'
+                  : 'bg-[#141923] text-[#FFD700] border-2 border-[#D4AF37] hover:bg-[#D4AF37]/20 active:scale-95'
+              }`}
+            >
+              <ChevronLeft className="w-4 h-4 text-[#FFD700]" />
+              <span>{lang === 'en' ? 'Prev' : 'గత'}</span>
+            </button>
 
-          {/* NEXT MONTH BUTTON */}
-          <button
-            type="button"
-            onClick={handleNextMonth}
-            disabled={activeMonthIndex === MONTHS_LIST.length - 1}
-            className={`px-3.5 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all shadow-md ${
-              activeMonthIndex === MONTHS_LIST.length - 1
-                ? 'opacity-40 cursor-not-allowed bg-[#141923] text-[#94A3B8] border border-white/10'
-                : 'bg-gradient-to-r from-[#FF5722] to-[#FFD700] text-black hover:brightness-110 active:scale-95 ring-2 ring-[#FFD700]'
-            }`}
-          >
-            <span>{lang === 'en' ? 'Next' : 'తరువాతి'}</span>
-            <ChevronRight className="w-4 h-4 text-black" />
-          </button>
+            {/* NEXT MONTH BUTTON */}
+            <button
+              type="button"
+              onClick={handleNextMonth}
+              disabled={activeMonthIndex === MONTHS_LIST.length - 1}
+              className={`px-3 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1 transition-all shadow-md ${
+                activeMonthIndex === MONTHS_LIST.length - 1
+                  ? 'opacity-40 cursor-not-allowed bg-[#141923] text-[#94A3B8] border border-white/10'
+                  : 'bg-gradient-to-r from-[#FF5722] to-[#FFD700] text-black hover:brightness-110 active:scale-95 ring-2 ring-[#FFD700]'
+              }`}
+            >
+              <span>{lang === 'en' ? 'Next' : 'తరువాతి'}</span>
+              <ChevronRight className="w-4 h-4 text-black" />
+            </button>
+          </div>
         </div>
 
       </div>

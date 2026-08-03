@@ -432,7 +432,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Footer with Disclaimer, Feedback Link & Reddit Community */}
+      {/* Footer with Disclaimer & Feedback Link */}
       <footer className="bg-[#080A0E] border-t border-[#D4AF37]/30 py-8 mt-12 text-xs text-[#94A3B8] space-y-6">
         <div className="container flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
           <div className="flex items-center gap-3">
@@ -459,7 +459,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Give Feedback & Subreddit Links */}
+          {/* Give Feedback Link */}
           <div className="flex flex-wrap items-center justify-center gap-3">
             <button
               onClick={() => {
@@ -471,16 +471,6 @@ export default function App() {
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Give Feedback</span>
             </button>
-
-            <a
-              href="https://www.reddit.com/r/TirumalaDarshan/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3.5 py-1.5 rounded-lg bg-[#FF4500] text-white font-bold text-xs flex items-center gap-1.5 shadow-md hover:scale-105 transition-transform"
-            >
-              <span>r/TirumalaDarshan Subreddit</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
           </div>
         </div>
 

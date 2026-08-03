@@ -80,19 +80,6 @@ export const TEMPLES = [
     dressCode: 'Traditional Indian Attire'
   },
   {
-    id: 'vakulamatha',
-    name: 'Sri Vakulamatha Temple',
-    teluguName: 'శ్రీ వకుళమాత ఆలయం, పేరూరు',
-    location: 'Peruru Hillock (near Tirupati)',
-    distanceFromStation: '7 km from Tirupati Railway Station',
-    deity: 'Vakula Devi (Foster Mother of Lord Venkateswara)',
-    badge: 'Mother’s Sacred Hill Shrine',
-    color: '#9C27B0',
-    description: 'Dedicated to Vakula Devi, mother of Lord Venkateswara. Restored shrine where divine Naivedyam is prepared facing Tirumala.',
-    timing: '06:00 AM - 08:00 PM',
-    dressCode: 'Traditional Indian Attire'
-  },
-  {
     id: 'ontimitta',
     name: 'Ontimitta Sri Kodandarama Swamy Temple',
     teluguName: 'ఒంటిమిట్ట శ్రీ కోదండరామస్వామి వారి ఆలయం',

@@ -90,7 +90,9 @@ export async function pushEventsToCloud(events) {
           category: e.category,
           vahanam: e.vahanam || '',
           description: e.description || '',
-          image_url: e.imageUrl || ''
+          description_te: e.descriptionTe || '',
+          image_url: e.imageUrl || '',
+          images: e.images || []
         })))
       });
 
@@ -165,7 +167,22 @@ export async function pullEventsFromCloud() {
     }
 
     const data = await response.json();
-    const events = data.events || data;
+    const rawEvents = data.events || data;
+    const events = Array.isArray(rawEvents) ? rawEvents.map(e => ({
+      id: e.id,
+      title: e.title,
+      titleTe: e.title_te || e.titleTe || e.title,
+      templeId: e.temple_id || e.templeId,
+      startDate: e.start_date || e.startDate,
+      endDate: e.end_date || e.endDate,
+      category: e.category,
+      vahanam: e.vahanam || '',
+      description: e.description || '',
+      descriptionTe: e.description_te || e.descriptionTe || '',
+      imageUrl: e.image_url || e.imageUrl || '',
+      images: e.images || (e.image_url ? [{ url: e.image_url, caption: e.title }] : [])
+    })) : [];
+
     const syncTime = updateLastSyncTimestamp();
     return { success: true, events, timestamp: syncTime };
   } catch (err) {

@@ -3,7 +3,8 @@ import { TEMPLES } from '../data/templeEvents';
 import { getEventStatus, downloadIcsCalendarFile, openGoogleCalendar, shareToWhatsApp } from '../utils/eventStatus';
 import { exportPanchangamPdf } from '../utils/pdfExport';
 import CalendarMonthGrid from './CalendarMonthGrid';
-import { Calendar, Filter, Tag, Edit, Download, Plus, Trash2, FileText, Search, X as ClearIcon, Share2 } from 'lucide-react';
+import CalendarScheduleView from './CalendarScheduleView';
+import { Calendar, Filter, Tag, Edit, Download, Plus, Trash2, FileText, Search, X as ClearIcon, Share2, List } from 'lucide-react';
 
 export default function CalendarView({
   events,
@@ -16,7 +17,7 @@ export default function CalendarView({
   onDeleteEvent,
   onOpenAddEvent
 }) {
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'cards'
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'schedule' | 'cards'
   const [selectedMonthFilter, setSelectedMonthFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -126,29 +127,45 @@ export default function CalendarView({
               </button>
             )}
 
-            <div className="flex bg-[#141923] p-1 rounded-xl border border-[#D4AF37]/40">
+            {/* 3-Way View Mode Switcher: Month View | Schedule View | Cards View */}
+            <div className="flex bg-[#141923] p-1 rounded-xl border border-[#D4AF37]/40 max-w-full overflow-x-auto no-scrollbar">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all ${
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all shrink-0 ${
                   viewMode === 'grid'
                     ? 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-black shadow-md'
                     : 'text-[#94A3B8] hover:text-white'
                 }`}
+                title="Month Grid View"
               >
                 <Calendar className="w-3.5 h-3.5" />
                 <span>{lang === 'en' ? 'Month View' : 'నెల క్యాలెండర్'}</span>
               </button>
 
               <button
+                onClick={() => setViewMode('schedule')}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all shrink-0 ${
+                  viewMode === 'schedule'
+                    ? 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-black shadow-md'
+                    : 'text-[#94A3B8] hover:text-white'
+                }`}
+                title="Google Calendar Schedule Agenda View"
+              >
+                <List className="w-3.5 h-3.5" />
+                <span>{lang === 'en' ? 'Schedule View' : 'షెడ్యూల్'}</span>
+              </button>
+
+              <button
                 onClick={() => setViewMode('cards')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all ${
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all shrink-0 ${
                   viewMode === 'cards'
                     ? 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-black shadow-md'
                     : 'text-[#94A3B8] hover:text-white'
                 }`}
+                title="Event Cards View"
               >
                 <Tag className="w-3.5 h-3.5" />
-                <span>{lang === 'en' ? 'Event Cards' : 'ఉత్సవ కార్డులు'}</span>
+                <span>{lang === 'en' ? 'Cards' : 'కార్డులు'}</span>
               </button>
             </div>
           </div>
@@ -201,6 +218,16 @@ export default function CalendarView({
           lang={lang}
           onSelectEvent={onSelectEvent}
           selectedTemple={selectedTemple}
+        />
+      ) : viewMode === 'schedule' ? (
+        <CalendarScheduleView
+          events={filteredEvents}
+          lang={lang}
+          onSelectEvent={onSelectEvent}
+          selectedTemple={selectedTemple}
+          isAdminLoggedIn={isAdminLoggedIn}
+          onEditEvent={onEditEvent}
+          onDeleteEvent={onDeleteEvent}
         />
       ) : (
         /* EVENT CARDS LIST VIEW WITH INLINE ADMIN EDIT & DELETE BUTTONS */

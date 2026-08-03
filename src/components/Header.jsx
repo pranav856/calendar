@@ -71,30 +71,6 @@ export default function Header({
   return (
     <header className="sticky top-0 z-50 bg-[#0B0E14]/95 border-b border-[#D4AF37]/30 shadow-2xl transition-colors">
       
-      {/* TOP SUBREDDIT COMMUNITY BANNER */}
-      <div className="bg-[#FF4500] text-white text-xs py-1.5 px-4 font-bold flex items-center justify-between shadow-md">
-        <div className="flex items-center gap-2 overflow-hidden truncate">
-          <span className="bg-black/30 px-2 py-0.5 rounded text-[#FFD700] text-[11px] font-mono shrink-0">
-            r/TirumalaDarshan
-          </span>
-          <span className="truncate">
-            {lang === 'en'
-              ? 'Have questions or pilgrim doubts? Ask the community on Reddit!'
-              : 'సందేహాలు ఉన్నాయా? Reddit రసజ్ఞ మండలిలో అడగండి!'}
-          </span>
-        </div>
-
-        <a
-          href="https://www.reddit.com/r/TirumalaDarshan/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="px-2.5 py-0.5 rounded bg-black/40 text-[#FFD700] hover:bg-black/60 transition-colors flex items-center gap-1 shrink-0 text-xs"
-        >
-          <span>Ask Questions</span>
-          <ExternalLink className="w-3.5 h-3.5" />
-        </a>
-      </div>
-
       {/* Main Header Navigation Container */}
       <div className="container py-2 flex flex-wrap items-center justify-between gap-2 sm:gap-4">
         
@@ -186,38 +162,26 @@ export default function Header({
           </button>
         </nav>
 
-        {/* PINNED FAR RIGHT CONTROL COLUMN: TOP RIGHT TIMER + THEME/ADMIN/LANG DIRECTLY BELOW */}
-        <div className="flex flex-col items-end gap-1 ml-auto shrink-0">
-          
-          {/* TOP RIGHT LIVE IST 24H CLOCK INDICATOR & NETWORK/PWA STATUS */}
-          <div className="flex items-center gap-1.5">
-            {!isOnline && (
-              <span className="px-2 py-0.5 rounded-lg bg-red-900/80 border border-red-500 text-red-200 text-[10px] font-bold flex items-center gap-1 shadow animate-pulse" title="Network disconnected - Serving cached Panchangam events">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
-                <span>Offline Mode</span>
-              </span>
-            )}
+        {/* PINNED FAR RIGHT CONTROL COLUMN: THEME/ADMIN/LANG */}
+        <div className="flex items-center gap-1.5 ml-auto shrink-0">
+          {!isOnline && (
+            <span className="px-2 py-0.5 rounded-lg bg-red-900/80 border border-red-500 text-red-200 text-[10px] font-bold flex items-center gap-1 shadow animate-pulse" title="Network disconnected - Serving cached Panchangam events">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+              <span>Offline Mode</span>
+            </span>
+          )}
 
-            {deferredPrompt && (
-              <button
-                onClick={handleInstallClick}
-                className="px-2 py-0.5 rounded-lg bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-black text-[11px] font-extrabold flex items-center gap-1 shadow hover:scale-105 transition-all"
-                title="Install Tirumala Utsavam App"
-              >
-                <span>📱 Install App</span>
-              </button>
-            )}
+          {deferredPrompt && (
+            <button
+              onClick={handleInstallClick}
+              className="px-2 py-0.5 rounded-lg bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-black text-[11px] font-extrabold flex items-center gap-1 shadow hover:scale-105 transition-all"
+              title="Install Tirumala Utsavam App"
+            >
+              <span>📱 Install App</span>
+            </button>
+          )}
 
-            <div className="px-3 py-1 rounded-xl bg-[#141923] border border-[#FFD700]/60 text-xs font-mono font-extrabold flex items-center gap-1.5 text-[#FFD700] shadow-md">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>🇮🇳 IST {istTime}</span>
-              <span className="text-[10px] text-[#94A3B8]">({istDate})</span>
-            </div>
-          </div>
-
-          {/* BOTTOM ROW DIRECTLY BELOW TIMER: THEME TOGGLE, ADMIN & LANGUAGE */}
-          <div className="flex items-center gap-1.5">
-            {/* Dark / Light Mode Toggle */}
+          {/* Dark / Light Mode Toggle */}
             <button
               onClick={() => setThemeMode(themeMode === 'dark' ? 'light' : 'dark')}
               className="px-2 py-1 rounded-lg bg-[#141923] border border-[#D4AF37]/50 text-[#FFD700] hover:bg-[#D4AF37]/20 transition-colors flex items-center gap-1 text-xs font-bold shadow-sm"
@@ -254,8 +218,6 @@ export default function Header({
               <span>{lang === 'en' ? 'TE' : 'EN'}</span>
             </button>
           </div>
-
-        </div>
 
       </div>
     </header>
