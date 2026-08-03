@@ -197,14 +197,14 @@ export default function CalendarView({
             <button
               key={temple.id}
               onClick={() => setSelectedTemple(temple.id)}
-              className={`px-3 py-1 rounded-full font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded-full font-bold text-xs transition-all flex items-center gap-1.5 max-w-full text-left truncate shrink-0 sm:shrink ${
                 selectedTemple === temple.id
-                  ? 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-black shadow'
+                  ? 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-black shadow-md'
                   : 'bg-[#141923] text-[#94A3B8] hover:text-[#FFD700] border border-white/10'
               }`}
             >
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: temple.color }}></span>
-              <span>{lang === 'en' ? temple.name : temple.nameTe}</span>
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: temple.color }}></span>
+              <span className="truncate">{lang === 'en' ? temple.name : temple.nameTe}</span>
             </button>
           ))}
         </div>

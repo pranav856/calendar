@@ -105,40 +105,40 @@ export default function Header({
             </div>
           </div>
 
-          {/* CONTROL BUTTONS: THEME, ADMIN & LANGUAGE */}
+          {/* CONTROL BUTTONS: THEME, ADMIN & LANGUAGE (Ultra-compact on phone screens) */}
           <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
             {!isOnline && (
-              <span className="px-2 py-0.5 rounded-lg bg-red-900/80 border border-red-500 text-red-200 text-[10px] font-bold flex items-center gap-1 shadow animate-pulse" title="Network disconnected - Serving cached events">
+              <span className="px-1.5 py-0.5 rounded-lg bg-red-900/80 border border-red-500 text-red-200 text-[10px] font-bold flex items-center gap-1 shadow animate-pulse" title="Network disconnected - Serving cached events">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
-                <span className="hidden sm:inline">Offline Mode</span>
+                <span className="hidden sm:inline">Offline</span>
               </span>
             )}
 
             {deferredPrompt && (
               <button
                 onClick={handleInstallClick}
-                className="px-2 py-0.5 rounded-lg bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-black text-[10px] sm:text-[11px] font-extrabold flex items-center gap-1 shadow hover:scale-105 transition-all"
+                className="px-2 py-1 rounded-lg bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-black text-[10px] sm:text-[11px] font-extrabold flex items-center gap-1 shadow hover:scale-105 transition-all"
                 title="Install Tirumala Utsavam App"
               >
-                <span>📱 Install</span>
+                <span>📱 <span className="hidden sm:inline">Install</span></span>
               </button>
             )}
 
             {/* Dark / Light Mode Toggle */}
             <button
               onClick={() => setThemeMode(themeMode === 'dark' ? 'light' : 'dark')}
-              className="px-2 py-1 rounded-lg bg-[#141923] border border-[#D4AF37]/50 text-[#FFD700] hover:bg-[#D4AF37]/20 transition-colors flex items-center gap-1 text-xs font-bold shadow-sm"
+              className="p-1.5 sm:px-2.5 sm:py-1 rounded-lg bg-[#141923] border border-[#D4AF37]/50 text-[#FFD700] hover:bg-[#D4AF37]/20 transition-colors flex items-center gap-1 text-xs font-bold shadow-sm"
               title={themeMode === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
               {themeMode === 'dark' ? (
                 <>
-                  <Sun className="w-3.5 h-3.5 text-[#FFD700]" />
-                  <span className="text-[10px] sm:text-[11px]">Light</span>
+                  <Sun className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-[#FFD700]" />
+                  <span className="hidden sm:inline text-[11px]">Light</span>
                 </>
               ) : (
                 <>
-                  <Moon className="w-3.5 h-3.5 text-[#FF5722]" />
-                  <span className="text-[10px] sm:text-[11px]">Dark</span>
+                  <Moon className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-[#FF5722]" />
+                  <span className="hidden sm:inline text-[11px]">Dark</span>
                 </>
               )}
             </button>
@@ -146,16 +146,17 @@ export default function Header({
             {/* Admin Login Button */}
             <button
               onClick={onOpenAdmin}
-              className="px-2 py-1 rounded-lg bg-[#FF5722]/20 border border-[#FF5722]/50 text-[#FF5722] hover:bg-[#FF5722]/30 text-xs font-extrabold flex items-center gap-1 transition-colors shadow-sm"
+              className="p-1.5 sm:px-2.5 sm:py-1 rounded-lg bg-[#FF5722]/20 border border-[#FF5722]/50 text-[#FF5722] hover:bg-[#FF5722]/30 text-xs font-extrabold flex items-center gap-1 transition-colors shadow-sm"
+              title="Admin Login"
             >
-              <Lock className="w-3.5 h-3.5" />
-              <span>{lang === 'en' ? 'Admin' : 'అడ్మిన్'}</span>
+              <Lock className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+              <span className="hidden sm:inline">{lang === 'en' ? 'Admin' : 'అడ్మిన్'}</span>
             </button>
 
             {/* Language Toggle */}
             <button
               onClick={() => setLang(lang === 'en' ? 'te' : 'en')}
-              className="px-2 py-1 rounded-full border border-[#D4AF37]/50 bg-[#141923] text-[#FFD700] text-xs font-bold flex items-center gap-1 hover:bg-[#D4AF37]/20 transition-colors shadow-sm"
+              className="px-2 py-1 rounded-full border border-[#D4AF37]/50 bg-[#141923] text-[#FFD700] text-xs font-extrabold flex items-center gap-1 hover:bg-[#D4AF37]/20 transition-colors shadow-sm"
             >
               <Globe className="w-3.5 h-3.5 text-[#FFD700]" />
               <span>{lang === 'en' ? 'TE' : 'EN'}</span>
