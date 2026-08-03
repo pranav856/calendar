@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, MapPin, Share2, Edit, Trash2, Image as ImageIcon, ChevronRight, Clock } from 'lucide-react';
 import { TEMPLES } from '../data/templeEvents';
-import { getEventStatus, openGoogleCalendar, shareToWhatsApp } from '../utils/eventStatus';
+import { getEventStatus, openGoogleCalendar, shareToWhatsApp, normalizeImageUrl } from '../utils/eventStatus';
 
 export default function CalendarScheduleView({
   events,
@@ -161,12 +161,12 @@ export default function CalendarScheduleView({
                 const evtImages = [];
                 if (evt.images && Array.isArray(evt.images) && evt.images.length > 0) {
                   evt.images.forEach(img => {
-                    if (typeof img === 'string' && img.trim()) evtImages.push(img.trim());
-                    else if (img && img.url && img.url.trim()) evtImages.push(img.url.trim());
+                    if (typeof img === 'string' && img.trim()) evtImages.push(normalizeImageUrl(img.trim()));
+                    else if (img && img.url && img.url.trim()) evtImages.push(normalizeImageUrl(img.url.trim()));
                   });
                 }
                 if (evtImages.length === 0 && evt.imageUrl) {
-                  evtImages.push(evt.imageUrl.trim());
+                  evtImages.push(normalizeImageUrl(evt.imageUrl.trim()));
                 }
 
                 return (

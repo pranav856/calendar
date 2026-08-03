@@ -92,3 +92,33 @@ export function shareToWhatsApp(event, lang = 'en') {
   const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
   window.open(whatsappUrl, '_blank');
 }
+
+// Automatically convert Wikimedia file page links & Drive links to direct image URLs
+export function normalizeImageUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  let cleanUrl = url.trim();
+
+  // 1. Wikimedia Commons File Page URL -> Convert to Special:FilePath direct image stream
+  if (cleanUrl.includes('commons.wikimedia.org/wiki/File:')) {
+    const fileName = cleanUrl.split('File:')[1]?.split('?')[0]?.split('#')[0];
+    if (fileName) {
+      cleanUrl = `https://commons.wikimedia.org/wiki/Special:FilePath/${decodeURIComponent(fileName)}`;
+    }
+  }
+  // 2. Wikipedia File Page URL -> Convert to Special:FilePath
+  else if (cleanUrl.includes('wikipedia.org/wiki/File:')) {
+    const fileName = cleanUrl.split('File:')[1]?.split('?')[0]?.split('#')[0];
+    if (fileName) {
+      cleanUrl = `https://commons.wikimedia.org/wiki/Special:FilePath/${decodeURIComponent(fileName)}`;
+    }
+  }
+  // 3. Google Drive View Link -> Direct image link
+  else if (cleanUrl.includes('drive.google.com/file/d/')) {
+    const fileId = cleanUrl.split('/file/d/')[1]?.split('/')[0];
+    if (fileId) {
+      cleanUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
+    }
+  }
+
+  return cleanUrl;
+}

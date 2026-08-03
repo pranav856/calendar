@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TEMPLES } from '../data/templeEvents';
-import { getEventStatus, downloadIcsCalendarFile, openGoogleCalendar, shareToWhatsApp } from '../utils/eventStatus';
+import { getEventStatus, openGoogleCalendar, downloadIcsCalendarFile, shareToWhatsApp, normalizeImageUrl } from '../utils/eventStatus';
 import { exportPanchangamPdf } from '../utils/pdfExport';
 import CalendarMonthGrid from './CalendarMonthGrid';
 import CalendarScheduleView from './CalendarScheduleView';
@@ -262,12 +262,12 @@ export default function CalendarView({
                 const evtImages = [];
                 if (evt.images && Array.isArray(evt.images) && evt.images.length > 0) {
                   evt.images.forEach(img => {
-                    if (typeof img === 'string' && img.trim()) evtImages.push(img.trim());
-                    else if (img && img.url && String(img.url).trim()) evtImages.push(String(img.url).trim());
+                    if (typeof img === 'string' && img.trim()) evtImages.push(normalizeImageUrl(img.trim()));
+                    else if (img && img.url && String(img.url).trim()) evtImages.push(normalizeImageUrl(String(img.url).trim()));
                   });
                 }
                 if (evtImages.length === 0 && evt.imageUrl && String(evt.imageUrl).trim()) {
-                  evtImages.push(String(evt.imageUrl).trim());
+                  evtImages.push(normalizeImageUrl(String(evt.imageUrl).trim()));
                 }
                 const coverUrl = evtImages[0] || null;
 

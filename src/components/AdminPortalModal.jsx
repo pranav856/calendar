@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Plus, Edit2, Trash2, ShieldCheck, Lock, LogOut, MessageSquare, FileSpreadsheet, Search, Eye, CheckCircle, Cloud, RefreshCw, Database, Server, Image } from 'lucide-react';
 import { TEMPLES } from '../data/templeEvents';
 import { getCloudConfig, saveCloudConfig, pushEventsToCloud, getLastSyncTime } from '../utils/cloudSync';
+import { normalizeImageUrl } from '../utils/eventStatus';
 
 export default function AdminPortalModal({
   mode, // 'login' | 'edit-event' | 'feedback-inbox'
@@ -104,7 +105,8 @@ export default function AdminPortalModal({
   const handleImageFieldChange = (index, field, value) => {
     setEventForm(prev => {
       const updated = [...prev.images];
-      updated[index] = { ...updated[index], [field]: value };
+      const cleanVal = field === 'url' ? normalizeImageUrl(value) : value;
+      updated[index] = { ...updated[index], [field]: cleanVal };
       return { ...prev, images: updated };
     });
   };
@@ -442,31 +444,45 @@ export default function AdminPortalModal({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div>
-                      <label className="text-[10px] font-bold text-[#94A3B8] block mb-0.5">Image URL *</label>
+                      <label className="text-[10px] font-bold text-[#FFD700] block mb-0.5">Image URL *</label>
                       <input
-                        type="url"
+                        type="text"
                         value={imgObj.url}
                         onChange={(e) => handleImageFieldChange(idx, 'url', e.target.value)}
-                        placeholder="https://example.com/photo.jpg"
-                        className="w-full px-2.5 py-1.5 rounded-lg bg-[#141923] border border-[#D4AF37]/40 text-white text-xs"
+                        onBlur={(e) => handleImageFieldChange(idx, 'url', normalizeImageUrl(e.target.value))}
+                        placeholder="https://commons.wikimedia.org/wiki/File:... or .jpg/.png URL"
+                        className="w-full px-2.5 py-1.5 rounded-lg bg-[#141923] border border-[#D4AF37]/40 text-white text-xs font-mono"
                       />
+                      <span className="text-[9px] text-[#94A3B8] block mt-0.5">
+                        💡 Tip: Wikimedia Commons & Drive links are auto-converted to direct image stream URLs!
+                      </span>
                     </div>
 
                     <div>
-                      <label className="text-[10px] font-bold text-[#94A3B8] block mb-0.5">Caption / Title</label>
+                      <label className="text-[10px] font-bold text-[#FFD700] block mb-0.5">Caption / Title</label>
                       <input
                         type="text"
                         value={imgObj.caption}
                         onChange={(e) => handleImageFieldChange(idx, 'caption', e.target.value)}
-                        placeholder="e.g. Garuda Seva Procession"
+                        placeholder="e.g. Malayappa swami Chinna Sesha Vahanam"
                         className="w-full px-2.5 py-1.5 rounded-lg bg-[#141923] border border-[#D4AF37]/40 text-white text-xs"
                       />
                     </div>
                   </div>
 
                   {imgObj.url && (
-                    <div className="h-14 w-full rounded overflow-hidden border border-white/10 mt-1">
-                      <img src={imgObj.url} alt="Preview" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
+                    <div className="h-20 w-full rounded-xl overflow-hidden border border-[#D4AF37]/40 mt-1 bg-[#141923] relative">
+                      <img 
+                        src={normalizeImageUrl(imgObj.url)} 
+                        alt="Photo Preview" 
+                        className="w-full h-full object-cover" 
+                        onError={(e) => { 
+                          e.target.parentElement.innerHTML = '<div className="p-2 text-[10px] text-amber-400 font-mono text-center">⚠️ Invalid image URL. Ensure URL points directly to an image (.jpg, .png, .webp).</div>'; 
+                        }} 
+                      />
+                      <span className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/80 rounded text-[9px] text-[#FFD700] font-bold border border-[#FFD700]/30">
+                        Live Preview
+                      </span>
                     </div>
                   )}
                 </div>
