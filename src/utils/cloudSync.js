@@ -78,7 +78,22 @@ export async function pushEventsToCloud(events) {
         targetUrl = `${targetUrl}${sep}on_conflict=id`;
       }
 
-      const response = await fetch(targetUrl, {
+      const payload = JSON.stringify(events.map(e => ({
+        id: e.id,
+        title: e.title,
+        title_te: e.titleTe || e.title,
+        temple_id: e.templeId,
+        start_date: e.startDate,
+        end_date: e.endDate,
+        category: e.category,
+        vahanam: e.vahanam || '',
+        description: e.description || '',
+        description_te: e.descriptionTe || '',
+        image_url: e.imageUrl || '',
+        images: e.images || []
+      })));
+
+      let response = await fetch(targetUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -86,21 +101,26 @@ export async function pushEventsToCloud(events) {
           'Authorization': config.apiKey ? `Bearer ${config.apiKey}` : '',
           'Prefer': 'resolution=merge-duplicates,return=minimal'
         },
-        body: JSON.stringify(events.map(e => ({
-          id: e.id,
-          title: e.title,
-          title_te: e.titleTe || e.title,
-          temple_id: e.templeId,
-          start_date: e.startDate,
-          end_date: e.endDate,
-          category: e.category,
-          vahanam: e.vahanam || '',
-          description: e.description || '',
-          description_te: e.descriptionTe || '',
-          image_url: e.imageUrl || '',
-          images: e.images || []
-        })))
+        body: payload
       });
+
+      // Fallback: If merge-duplicates upsert is rejected by schema/RLS, retry with clean POST
+      if (!response.ok && (response.status === 400 || response.status === 405)) {
+        const cleanUrl = targetUrl.replace(/[\?&]on_conflict=id/, '');
+        const retryResp = await fetch(cleanUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': config.apiKey || '',
+            'Authorization': config.apiKey ? `Bearer ${config.apiKey}` : '',
+            'Prefer': 'return=minimal'
+          },
+          body: payload
+        });
+        if (retryResp.ok) {
+          response = retryResp;
+        }
+      }
 
       if (!response.ok) {
         let responseErrText = '';
