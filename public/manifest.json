@@ -1,0 +1,18 @@
+{
+  "short_name": "The Tirumala Verse",
+  "name": "The Tirumala Verse",
+  "description": "Your independent guide to Tirumala - Official 2026-27 TTD Panchangam events, Brahmotsavams, Vahana Sevas, and daily rituals across Tirumala & Tirupati temples.",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0B0E14",
+  "theme_color": "#D4AF37",
+  "display": "standalone",
+  "orientation": "portrait-primary"
+}

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Tirumala Verse | Your Independent Guide to Tirumala</title>
+    <meta name="description" content="The Tirumala Verse - Your independent guide to Tirumala. 2026-27 Panchangam events, Brahmotsavams, Vahana Sevas, and daily rituals across Tirumala & Tirupati temples." />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0B0E14" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    
+    <!-- Tailwind CSS CDN for instant responsive grid, flex & utility rendering -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              gold: {
+                DEFAULT: '#D4AF37',
+                bright: '#FFD700',
+                light: '#FFF0AD',
+              },
+              saffron: '#FF5722',
+              crimson: '#990000',
+              darkbg: '#0B0E14',
+              cardbg: '#141923',
+            },
+            fontFamily: {
+              serif: ['Cinzel', 'serif'],
+              sans: ['Plus Jakarta Sans', 'sans-serif'],
+              telugu: ['Rozha One', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+
+    <!-- Google Fonts: Cinzel, Plus Jakarta Sans, Rozha One -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Rozha+One&display=swap" rel="stylesheet">
+  </head>
+  <body class="bg-[#0B0E14] text-[#F4F6FB] font-sans antialiased min-h-screen overflow-x-hidden">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
