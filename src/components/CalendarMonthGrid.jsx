@@ -34,38 +34,68 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
 
   const [activeMonthIndex, setActiveMonthIndex] = useState(defaultCurrentIndex);
   
-  // Touch Swipe gesture support using useRef
-  const touchState = useRef({ startX: 0, startY: 0, endX: 0, endY: 0 });
+  // Touch Swipe gesture support using native event listeners & useRef
+  const gridContainerRef = useRef(null);
+  const touchState = useRef({ startX: 0, startY: 0, endX: 0, endY: 0, active: false });
+  const activeIndexRef = useRef(activeMonthIndex);
 
-  const handleTouchStart = (e) => {
-    if (e.touches && e.touches.length > 0) {
-      touchState.current.startX = e.touches[0].clientX;
-      touchState.current.startY = e.touches[0].clientY;
-      touchState.current.endX = e.touches[0].clientX;
-      touchState.current.endY = e.touches[0].clientY;
-    }
-  };
+  useEffect(() => {
+    activeIndexRef.current = activeMonthIndex;
+  }, [activeMonthIndex]);
 
-  const handleTouchMove = (e) => {
-    if (e.touches && e.touches.length > 0) {
-      touchState.current.endX = e.touches[0].clientX;
-      touchState.current.endY = e.touches[0].clientY;
-    }
-  };
+  useEffect(() => {
+    const el = gridContainerRef.current;
+    if (!el) return;
 
-  const handleTouchEnd = () => {
-    const diffX = touchState.current.startX - touchState.current.endX;
-    const diffY = touchState.current.startY - touchState.current.endY;
-
-    // Trigger month change if horizontal swipe > 25px and greater than vertical scroll
-    if (Math.abs(diffX) > 25 && Math.abs(diffX) > Math.abs(diffY)) {
-      if (diffX > 0) {
-        handleNextMonth();
-      } else {
-        handlePrevMonth();
+    const onTouchStart = (e) => {
+      if (e.touches && e.touches.length === 1) {
+        touchState.current.startX = e.touches[0].clientX;
+        touchState.current.startY = e.touches[0].clientY;
+        touchState.current.endX = e.touches[0].clientX;
+        touchState.current.endY = e.touches[0].clientY;
+        touchState.current.active = true;
       }
-    }
-  };
+    };
+
+    const onTouchMove = (e) => {
+      if (!touchState.current.active || !e.touches || e.touches.length === 0) return;
+      touchState.current.endX = e.touches[0].clientX;
+      touchState.current.endY = e.touches[0].clientY;
+    };
+
+    const onTouchEnd = () => {
+      if (!touchState.current.active) return;
+      touchState.current.active = false;
+
+      const diffX = touchState.current.startX - touchState.current.endX;
+      const diffY = touchState.current.startY - touchState.current.endY;
+
+      // Minimum swipe distance 25px, horizontal movement greater than vertical
+      if (Math.abs(diffX) > 25 && Math.abs(diffX) > Math.abs(diffY)) {
+        if (diffX > 0) {
+          // Swipe Left -> Next Month
+          if (activeIndexRef.current < MONTHS_LIST.length - 1) {
+            setActiveMonthIndex(prev => prev + 1);
+          }
+        } else {
+          // Swipe Right -> Prev Month
+          if (activeIndexRef.current > 0) {
+            setActiveMonthIndex(prev => prev - 1);
+          }
+        }
+      }
+    };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: true });
+    el.addEventListener('touchend', onTouchEnd, { passive: true });
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [MONTHS_LIST.length]);
 
   const handlePrevMonth = () => {
     if (activeMonthIndex > 0) {
@@ -152,10 +182,8 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
 
       {/* RENDERED ACTIVE MONTH CARD WITH SWIPE & FLOATING SIDE ARROWS */}
       <div 
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        className="rounded-2xl border-2 border-[#D4AF37]/40 bg-[#0B0E14] shadow-2xl p-2 sm:p-6 transition-all duration-300 relative group"
+        ref={gridContainerRef}
+        className="rounded-2xl border-2 border-[#D4AF37]/40 bg-[#0B0E14] shadow-2xl p-2 sm:p-6 transition-all duration-300 relative group touch-manipulation"
       >
         {/* Floating Side Arrow Buttons for Quick Touch Navigation */}
         {activeMonthIndex > 0 && (
