@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tirumala-utsavam-v1';
+const CACHE_NAME = 'tirumala-utsavam-v5';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -6,16 +6,17 @@ const ASSETS_TO_CACHE = [
   '/logo.svg'
 ];
 
-// Install Event - Pre-cache core app shell
+// Install Event - Pre-cache core app shell & skip waiting immediately
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS_TO_CACHE);
-    }).then(() => self.skipWaiting())
+    })
   );
 });
 
-// Activate Event - Clean up old caches
+// Activate Event - Purge all old caches and claim clients
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -30,14 +31,14 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event - Stale-while-revalidate strategy for seamless offline reading
+// Fetch Event - Network-first strategy for index HTML and JS bundles
 self.addEventListener('fetch', (event) => {
-  // Only intercept GET requests
   if (event.request.method !== 'GET') return;
 
+  // For API / Supabase requests or HTML/JS bundles, always go Network First
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request).then((networkResponse) => {
+    fetch(event.request)
+      .then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -45,12 +46,10 @@ self.addEventListener('fetch', (event) => {
           });
         }
         return networkResponse;
-      }).catch(() => {
-        // Network failed - return cached response if available
-        return cachedResponse;
-      });
-
-      return cachedResponse || fetchPromise;
-    })
+      })
+      .catch(() => {
+        // Fallback to cache if offline
+        return caches.match(event.request);
+      })
   );
 });
