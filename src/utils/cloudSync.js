@@ -67,6 +67,11 @@ export async function pushEventsToCloud(events) {
         targetUrl = `${targetUrl}/events`;
       }
 
+      if (config.apiKey && !targetUrl.includes('apikey=')) {
+        const sep = targetUrl.includes('?') ? '&' : '?';
+        targetUrl = `${targetUrl}${sep}apikey=${encodeURIComponent(config.apiKey.trim())}`;
+      }
+
       const response = await fetch(targetUrl, {
         method: 'POST',
         headers: {
@@ -134,7 +139,19 @@ export async function pullEventsFromCloud() {
   }
 
   try {
-    const response = await fetch(`${config.endpointUrl.replace(/\/$/, '')}/events`, {
+    let targetUrl = config.endpointUrl.replace(/\/$/, '');
+    if (targetUrl.includes('.supabase.co') && !targetUrl.includes('/rest/v1')) {
+      targetUrl = `${targetUrl}/rest/v1/events`;
+    } else if (!targetUrl.endsWith('/events')) {
+      targetUrl = `${targetUrl}/events`;
+    }
+
+    if (config.apiKey && !targetUrl.includes('apikey=')) {
+      const sep = targetUrl.includes('?') ? '&' : '?';
+      targetUrl = `${targetUrl}${sep}apikey=${encodeURIComponent(config.apiKey.trim())}`;
+    }
+
+    const response = await fetch(targetUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
