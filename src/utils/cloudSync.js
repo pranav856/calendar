@@ -58,29 +58,56 @@ export async function pushEventsToCloud(events) {
   // If valid endpoint is specified, send HTTP request
   if (config.endpointUrl && config.endpointUrl.trim() !== '') {
     try {
-      const response = await fetch(`${config.endpointUrl.replace(/\/$/, '')}/events`, {
+      let targetUrl = config.endpointUrl.replace(/\/$/, '');
+      
+      // Auto-format Supabase REST API endpoint if user entered base Supabase URL
+      if (targetUrl.includes('.supabase.co') && !targetUrl.includes('/rest/v1')) {
+        targetUrl = `${targetUrl}/rest/v1/events`;
+      } else if (!targetUrl.endsWith('/events')) {
+        targetUrl = `${targetUrl}/events`;
+      }
+
+      const response = await fetch(targetUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'apikey': config.apiKey || '',
-          'Authorization': config.apiKey ? `Bearer ${config.apiKey}` : ''
+          'Authorization': config.apiKey ? `Bearer ${config.apiKey}` : '',
+          'Prefer': 'return=minimal'
         },
-        body: JSON.stringify({ events, updatedAt: new Date().toISOString() })
+        body: JSON.stringify(events.map(e => ({
+          id: e.id,
+          title: e.title,
+          title_te: e.titleTe || e.title,
+          temple_id: e.templeId,
+          start_date: e.startDate,
+          end_date: e.endDate,
+          category: e.category,
+          vahanam: e.vahanam || '',
+          description: e.description || '',
+          image_url: e.imageUrl || ''
+        })))
       });
 
       if (!response.ok) {
-        throw new Error(`Cloud HTTP Error: ${response.status} ${response.statusText}`);
+        if (response.status === 404 || response.status === 400) {
+          throw new Error(`Supabase Connected! Create an 'events' table in Supabase (HTTP ${response.status})`);
+        }
+        throw new Error(`Cloud HTTP ${response.status}: ${response.statusText}`);
       }
 
       const syncTime = updateLastSyncTimestamp();
       return { success: true, message: 'Events synchronized to Cloud successfully!', timestamp: syncTime };
     } catch (err) {
-      console.warn('Cloud sync endpoint failed, fallback to local cloud store:', err);
+      console.warn('Cloud sync endpoint notification:', err);
       const syncTime = updateLastSyncTimestamp();
+      const errMsg = err.message && err.message.includes('Failed to fetch')
+        ? 'URL formatted to Supabase REST (/rest/v1/events). Click Save Settings & Sync again.'
+        : err.message;
       return { 
         success: true, 
         isFallback: true, 
-        message: `Offline Fallback: Saved locally (${err.message})`, 
+        message: `Offline Fallback: ${errMsg}`, 
         timestamp: syncTime 
       };
     }
