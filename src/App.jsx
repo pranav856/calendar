@@ -252,9 +252,10 @@ export default function App() {
         setLang={setLang}
         themeMode={themeMode}
         setThemeMode={setThemeMode}
-        onOpenAdmin={() => {
+        isAdminLoggedIn={isAdminLoggedIn}
+        onOpenAdmin={(requestedMode) => {
           if (isAdminLoggedIn) {
-            setAdminModalMode('feedback-inbox');
+            setAdminModalMode(requestedMode || 'feedback-inbox');
           } else {
             setAdminModalMode('login');
           }

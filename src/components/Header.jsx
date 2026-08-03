@@ -9,7 +9,8 @@ export default function Header({
   themeMode, 
   setThemeMode, 
   onOpenAdmin,
-  onOpenLogoModal
+  onOpenLogoModal,
+  isAdminLoggedIn
 }) {
   // Live IST 24-Hour Clock State
   const [istTime, setIstTime] = useState('');
@@ -165,9 +166,15 @@ export default function Header({
             <span>{lang === 'en' ? 'Sevas' : 'సేవలు'}</span>
           </button>
 
-          {/* COMMUNITY FEEDBACK BUTTON REPLACING GUIDE */}
+          {/* COMMUNITY FEEDBACK BUTTON / ADMIN INBOX */}
           <button
-            onClick={() => setActiveTab('feedback')}
+            onClick={() => {
+              if (isAdminLoggedIn) {
+                onOpenAdmin('feedback-inbox');
+              } else {
+                setActiveTab('feedback');
+              }
+            }}
             className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-1.5 shrink-0 transition-all ${
               activeTab === 'feedback'
                 ? 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-[#0B0E14] shadow-md'
@@ -175,7 +182,7 @@ export default function Header({
             }`}
           >
             <MessageSquare className="w-4 h-4 text-[#FF5722]" />
-            <span>{lang === 'en' ? 'Feedback' : 'అభిప్రాయాలు'}</span>
+            <span>{isAdminLoggedIn ? (lang === 'en' ? 'Feedback Inbox' : 'అభిప్రాయాల ఇన్బాక్స్') : (lang === 'en' ? 'Feedback' : 'అభిప్రాయాలు')}</span>
           </button>
         </nav>
 

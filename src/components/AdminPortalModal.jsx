@@ -17,7 +17,13 @@ export default function AdminPortalModal({
   feedbackList,
   onUpdateFeedback,
   onDeleteFeedback
-}) {
+  // Admin Navigation State
+  const [activeAdminTab, setActiveAdminTab] = useState(mode || 'feedback-inbox');
+
+  useEffect(() => {
+    if (mode) setActiveAdminTab(mode);
+  }, [mode]);
+
   // Login Form State
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -190,8 +196,52 @@ export default function AdminPortalModal({
           <X className="w-5 h-5" />
         </button>
 
+        {/* LOGGED IN ADMIN NAVIGATION BAR */}
+        {isAdminLoggedIn && (
+          <div className="flex flex-wrap items-center gap-2 border-b border-[#D4AF37]/30 pb-3 pr-8">
+            <button
+              type="button"
+              onClick={() => setActiveAdminTab('feedback-inbox')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all ${
+                activeAdminTab === 'feedback-inbox'
+                  ? 'bg-gradient-to-r from-[#FF5722] to-[#FFD700] text-black shadow'
+                  : 'bg-[#141923] text-[#FFD700] border border-[#D4AF37]/40 hover:bg-[#D4AF37]/20'
+              }`}
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>Devotee Inbox ({feedbackList ? feedbackList.length : 0})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveAdminTab('add-event')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all ${
+                activeAdminTab === 'add-event' || activeAdminTab === 'edit-event'
+                  ? 'bg-gradient-to-r from-[#FF5722] to-[#FFD700] text-black shadow'
+                  : 'bg-[#141923] text-[#FFD700] border border-[#D4AF37]/40 hover:bg-[#D4AF37]/20'
+              }`}
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>{targetEvent ? 'Edit Event' : 'Add Event'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveAdminTab('cloud-sync')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all ${
+                activeAdminTab === 'cloud-sync'
+                  ? 'bg-gradient-to-r from-[#FF5722] to-[#FFD700] text-black shadow'
+                  : 'bg-[#141923] text-[#FFD700] border border-[#D4AF37]/40 hover:bg-[#D4AF37]/20'
+              }`}
+            >
+              <Cloud className="w-3.5 h-3.5" />
+              <span>Cloud Sync</span>
+            </button>
+          </div>
+        )}
+
         {/* 1. LOGIN MODE */}
-        {mode === 'login' && !isAdminLoggedIn && (
+        {(!isAdminLoggedIn || mode === 'login' && !isAdminLoggedIn) && (
           <form onSubmit={handleLogin} className="space-y-4 max-w-sm mx-auto py-4">
             <div className="text-center space-y-1">
               <Lock className="w-10 h-10 text-[#FF5722] mx-auto" />
@@ -239,7 +289,7 @@ export default function AdminPortalModal({
         )}
 
         {/* 2. EDIT / ADD EVENT MODE */}
-        {(mode === 'edit-event' || mode === 'add-event') && (
+        {isAdminLoggedIn && (activeAdminTab === 'edit-event' || activeAdminTab === 'add-event') && (
           <form onSubmit={handleSaveEvent} className="space-y-4">
             <div className="flex items-center gap-2 border-b border-[#D4AF37]/30 pb-3">
               <Edit2 className="w-5 h-5 text-[#FF5722]" />
@@ -350,7 +400,7 @@ export default function AdminPortalModal({
         )}
 
         {/* 3. FEEDBACK INBOX MODE */}
-        {mode === 'feedback-inbox' && (
+        {isAdminLoggedIn && activeAdminTab === 'feedback-inbox' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-[#D4AF37]/30 pb-3">
               <div className="flex items-center gap-2">
@@ -452,7 +502,7 @@ export default function AdminPortalModal({
         )}
 
         {/* 4. CLOUD DATABASE SYNC MODE */}
-        {mode === 'cloud-sync' && (
+        {isAdminLoggedIn && activeAdminTab === 'cloud-sync' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-[#D4AF37]/30 pb-3">
               <div className="flex items-center gap-2">
