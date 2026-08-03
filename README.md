@@ -4,14 +4,7 @@ A state-of-the-art, high-performance web application designed for pilgrims and d
 
 ---
 
-## 🔑 Admin Portal Credentials
 
-To access the Event Management Desk (Add, Edit, and Delete events):
-- **Header Button**: Click `🔒 Admin` in the top right header bar.
-- **Username**: `ttd_master_admin`
-- **Password**: `Tirumala#Divya2026!Secured`
-
----
 
 ## 🌟 Comprehensive Feature Overview & What Was Built
 
