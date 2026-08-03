@@ -73,7 +73,7 @@ export async function pushEventsToCloud(events) {
           'Content-Type': 'application/json',
           'apikey': config.apiKey || '',
           'Authorization': config.apiKey ? `Bearer ${config.apiKey}` : '',
-          'Prefer': 'return=minimal'
+          'Prefer': 'resolution=merge-duplicates,return=minimal'
         },
         body: JSON.stringify(events.map(e => ({
           id: e.id,
