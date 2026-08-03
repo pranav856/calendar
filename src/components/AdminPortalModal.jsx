@@ -679,23 +679,56 @@ export default function AdminPortalModal({
                 />
               </div>
 
-              <div className="flex items-center justify-between pt-1">
-                <label className="flex items-center gap-2 text-xs text-[#94A3B8] cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={cloudConfig.autoSync}
-                    onChange={(e) => setCloudConfigState({ ...cloudConfig, autoSync: e.target.checked })}
-                    className="accent-[#FFD700]"
-                  />
-                  <span>Auto-sync when events are added or updated</span>
-                </label>
-
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/10">
                 <button
-                  type="submit"
-                  className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow"
+                  type="button"
+                  onClick={() => {
+                    const sql = `CREATE TABLE IF NOT EXISTS public.events (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  title_te TEXT,
+  temple_id TEXT,
+  start_date TEXT,
+  end_date TEXT,
+  category TEXT,
+  vahanam TEXT,
+  description TEXT,
+  description_te TEXT,
+  image_url TEXT,
+  images JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public select" ON public.events FOR SELECT USING (true);
+CREATE POLICY "Allow public insert update" ON public.events FOR ALL USING (true) WITH CHECK (true);`;
+                    navigator.clipboard.writeText(sql);
+                    alert('Copied 1-Click Supabase SQL Script! Paste in Supabase -> SQL Editor -> Run.');
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-[#141923] border border-[#D4AF37]/50 text-[#FFD700] hover:bg-[#D4AF37]/20 text-[11px] font-bold flex items-center gap-1 shadow"
+                  title="Copy SQL code to create events table in Supabase"
                 >
-                  Save Settings
+                  <span>📋 Copy Supabase SQL Script</span>
                 </button>
+
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-2 text-xs text-[#94A3B8] cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={cloudConfig.autoSync}
+                      onChange={(e) => setCloudConfigState({ ...cloudConfig, autoSync: e.target.checked })}
+                      className="accent-[#FFD700]"
+                    />
+                    <span>Auto-sync when updated</span>
+                  </label>
+
+                  <button
+                    type="submit"
+                    className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow"
+                  >
+                    Save Settings
+                  </button>
+                </div>
               </div>
             </form>
           </div>
