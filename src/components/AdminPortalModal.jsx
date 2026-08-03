@@ -30,18 +30,29 @@ export default function AdminPortalModal({
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
 
+  const getInitialImages = (evt) => {
+    if (evt && evt.images && Array.isArray(evt.images) && evt.images.length > 0) {
+      return evt.images.map(img => typeof img === 'string' ? { url: img, caption: '' } : { url: img.url || '', caption: img.caption || '' });
+    }
+    if (evt && evt.imageUrl) {
+      return [{ url: evt.imageUrl, caption: evt.title || '' }];
+    }
+    return [{ url: '', caption: '' }];
+  };
+
   // Event Form State
   const [eventForm, setEventForm] = useState({
     title: '',
     titleTe: '',
-    templeId: 'tirumala',
+    templeId: 'tirumala-main',
     startDate: '2026-07-27',
     endDate: '2026-07-27',
-    category: 'utsavam',
+    category: 'brahmotsavam',
     vahanam: '',
     description: '',
     descriptionTe: '',
-    imageUrl: ''
+    imageUrl: '',
+    images: [{ url: '', caption: '' }]
   });
 
   useEffect(() => {
@@ -49,30 +60,54 @@ export default function AdminPortalModal({
       setEventForm({
         title: targetEvent.title || '',
         titleTe: targetEvent.titleTe || '',
-        templeId: targetEvent.templeId || 'tirumala',
+        templeId: targetEvent.templeId || 'tirumala-main',
         startDate: targetEvent.startDate || '2026-07-27',
         endDate: targetEvent.endDate || '2026-07-27',
-        category: targetEvent.category || 'utsavam',
+        category: targetEvent.category || 'brahmotsavam',
         vahanam: targetEvent.vahanam || '',
         description: targetEvent.description || '',
         descriptionTe: targetEvent.descriptionTe || '',
-        imageUrl: targetEvent.imageUrl || ''
+        imageUrl: targetEvent.imageUrl || '',
+        images: getInitialImages(targetEvent)
       });
     } else {
       setEventForm({
         title: '',
         titleTe: '',
-        templeId: 'tirumala',
+        templeId: 'tirumala-main',
         startDate: '2026-07-27',
         endDate: '2026-07-27',
-        category: 'utsavam',
+        category: 'brahmotsavam',
         vahanam: '',
         description: '',
         descriptionTe: '',
-        imageUrl: ''
+        imageUrl: '',
+        images: [{ url: '', caption: '' }]
       });
     }
   }, [targetEvent]);
+
+  const handleAddImageField = () => {
+    setEventForm(prev => ({
+      ...prev,
+      images: [...prev.images, { url: '', caption: '' }]
+    }));
+  };
+
+  const handleRemoveImageField = (index) => {
+    setEventForm(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleImageFieldChange = (index, field, value) => {
+    setEventForm(prev => {
+      const updated = [...prev.images];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...prev, images: updated };
+    });
+  };
 
   // Feedback State
   const [feedbackStatusFilter, setFeedbackStatusFilter] = useState('all');
@@ -123,16 +158,26 @@ export default function AdminPortalModal({
     e.preventDefault();
     if (!eventForm.title.trim()) return;
 
+    const cleanedImages = (eventForm.images || [])
+      .filter(img => img.url && img.url.trim() !== '')
+      .map(img => ({ url: img.url.trim(), caption: (img.caption || '').trim() }));
+
+    const eventPayload = {
+      ...eventForm,
+      images: cleanedImages,
+      imageUrl: cleanedImages.length > 0 ? cleanedImages[0].url : (eventForm.imageUrl || '')
+    };
+
     if (targetEvent) {
       onUpdateEvent({
         ...targetEvent,
-        ...eventForm
+        ...eventPayload
       });
       alert(lang === 'en' ? 'Event updated live on website!' : 'ఉత్సవం నవీకరించబడింది!');
     } else {
       const newEvt = {
         id: `custom-evt-${Date.now()}`,
-        ...eventForm
+        ...eventPayload
       };
       onAddEvent(newEvt);
       alert(lang === 'en' ? 'New event added live on website!' : 'కొత్త ఉత్సవం జతచేయబడింది!');
@@ -362,15 +407,70 @@ export default function AdminPortalModal({
               </div>
             </div>
 
-            <div>
-              <label className="text-xs font-bold text-[#FFD700] block mb-1">Image URL (Optional)</label>
-              <input
-                type="url"
-                value={eventForm.imageUrl}
-                onChange={(e) => setEventForm({ ...eventForm, imageUrl: e.target.value })}
-                placeholder="https://example.com/image.jpg"
-                className="w-full px-3 py-2 rounded-xl bg-[#141923] border border-[#D4AF37]/50 text-white text-xs"
-              />
+            {/* EVENT PHOTOS & CAPTIONS MANAGER */}
+            <div className="space-y-3 p-3.5 rounded-xl bg-[#141923] border border-[#D4AF37]/40">
+              <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-[#FFD700]">
+                  <Image className="w-4 h-4 text-[#FF5722]" />
+                  <span>Event Photos & Captions ({eventForm.images ? eventForm.images.length : 0})</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddImageField}
+                  className="px-2.5 py-1 rounded bg-[#FF5722] hover:bg-[#E65100] text-white text-[10px] font-extrabold flex items-center gap-1 shadow"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Add Photo</span>
+                </button>
+              </div>
+
+              {eventForm.images.map((imgObj, idx) => (
+                <div key={idx} className="p-2.5 rounded-lg bg-[#0B0E14] border border-white/10 space-y-2 relative group">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-white/80">
+                    <span>Photo #{idx + 1} {idx === 0 ? '(Main Cover Photo)' : ''}</span>
+                    {eventForm.images.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImageField(idx)}
+                        className="text-red-400 hover:text-red-300 p-1"
+                        title="Remove photo"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-bold text-[#94A3B8] block mb-0.5">Image URL *</label>
+                      <input
+                        type="url"
+                        value={imgObj.url}
+                        onChange={(e) => handleImageFieldChange(idx, 'url', e.target.value)}
+                        placeholder="https://example.com/photo.jpg"
+                        className="w-full px-2.5 py-1.5 rounded-lg bg-[#141923] border border-[#D4AF37]/40 text-white text-xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-[#94A3B8] block mb-0.5">Caption / Title</label>
+                      <input
+                        type="text"
+                        value={imgObj.caption}
+                        onChange={(e) => handleImageFieldChange(idx, 'caption', e.target.value)}
+                        placeholder="e.g. Garuda Seva Procession"
+                        className="w-full px-2.5 py-1.5 rounded-lg bg-[#141923] border border-[#D4AF37]/40 text-white text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  {imgObj.url && (
+                    <div className="h-14 w-full rounded overflow-hidden border border-white/10 mt-1">
+                      <img src={imgObj.url} alt="Preview" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
 
             <div>

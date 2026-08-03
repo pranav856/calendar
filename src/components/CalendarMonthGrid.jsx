@@ -36,22 +36,35 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
   
   // Touch Swipe gesture support
   const [touchStartX, setTouchStartX] = useState(null);
+  const [touchStartY, setTouchStartY] = useState(null);
 
   const handleTouchStart = (e) => {
-    setTouchStartX(e.touches[0].clientX);
+    if (e.touches && e.touches.length > 0) {
+      setTouchStartX(e.touches[0].clientX);
+      setTouchStartY(e.touches[0].clientY);
+    }
   };
 
   const handleTouchEnd = (e) => {
-    if (touchStartX === null) return;
-    const touchEndX = e.changedTouches[0].clientX;
-    const diffX = touchStartX - touchEndX;
+    if (touchStartX === null || touchStartY === null) return;
+    if (!e.changedTouches || e.changedTouches.length === 0) return;
 
-    if (diffX > 50) {
-      handleNextMonth();
-    } else if (diffX < -50) {
-      handlePrevMonth();
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+
+    const diffX = touchStartX - touchEndX;
+    const diffY = touchStartY - touchEndY;
+
+    // Trigger month swipe only if horizontal movement is dominant and > 35px
+    if (Math.abs(diffX) > 35 && Math.abs(diffX) > Math.abs(diffY) * 1.2) {
+      if (diffX > 0) {
+        handleNextMonth();
+      } else {
+        handlePrevMonth();
+      }
     }
     setTouchStartX(null);
+    setTouchStartY(null);
   };
 
   const handlePrevMonth = () => {
@@ -83,7 +96,7 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
               {lang === 'en' ? activeMonth.label : activeMonth.labelTe}
             </h3>
             <p className="text-[11px] text-[#94A3B8]">
-              {lang === 'en' ? 'Click Prev/Next Month buttons or swipe sideways to navigate' : 'నెలల వారీగా తిప్పడానికి బటన్లు ఉపయోగించండి'}
+              {lang === 'en' ? '👈 Swipe left/right on grid or use buttons to change months 👉' : 'నెలల వారీగా తిప్పడానికి పక్కకు జరపండి లేదా బటన్లు ఉపయోగించండి'}
             </p>
           </div>
         </div>
@@ -141,7 +154,7 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
       <div 
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className="rounded-2xl border-2 border-[#D4AF37]/40 bg-[#0B0E14] shadow-2xl p-4 sm:p-6 transition-all duration-300"
+        className="rounded-2xl border-2 border-[#D4AF37]/40 bg-[#0B0E14] shadow-2xl p-3 sm:p-6 transition-all duration-300 touch-pan-y"
       >
         <MonthGridCard 
           key={`${activeMonth.year}-${activeMonth.month}`}
@@ -184,7 +197,7 @@ function MonthGridCard({ monthObj, events, lang, onSelectEvent }) {
     );
   }
 
-  // Active Date Cells - PURE WHITE BACKGROUND BOXES
+  // Active Date Cells - PURE WHITE BACKGROUND BOXES WITH EVENT IMAGE PREVIEW
   for (let day = 1; day <= totalDays; day++) {
     const dayEvents = getEventsForDay(day);
     const dayStr = day.toString().padStart(2, '0');
@@ -193,10 +206,15 @@ function MonthGridCard({ monthObj, events, lang, onSelectEvent }) {
 
     const isToday = dateStr === new Date().toISOString().split('T')[0];
 
+    // Find event on this day that has pictures
+    const eventWithImage = dayEvents.find(e => (e.images && e.images.length > 0 && e.images[0].url) || e.imageUrl);
+    const dayImageUrl = eventWithImage ? (eventWithImage.images?.[0]?.url || eventWithImage.imageUrl) : null;
+    const totalPhotos = dayEvents.reduce((acc, e) => acc + (e.images && e.images.length > 0 ? e.images.length : (e.imageUrl ? 1 : 0)), 0);
+
     gridCells.push(
       <div 
         key={`day-${day}`}
-        className={`min-h-[65px] sm:min-h-[120px] p-1 sm:p-2.5 rounded-lg sm:rounded-xl border transition-all flex flex-col justify-between shadow-md ${
+        className={`min-h-[75px] sm:min-h-[130px] p-1 sm:p-2 rounded-lg sm:rounded-xl border transition-all flex flex-col justify-between shadow-md relative overflow-hidden ${
           isToday 
             ? 'bg-amber-100 border-[#FF5722] ring-2 ring-[#FF5722]' 
             : dayEvents.length > 0 
@@ -204,7 +222,7 @@ function MonthGridCard({ monthObj, events, lang, onSelectEvent }) {
               : 'bg-white border border-slate-200 hover:border-[#D4AF37]'
         }`}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between z-10">
           <span className={`text-xs sm:text-base font-extrabold ${isToday ? 'text-[#FF5722]' : 'text-slate-900'}`}>
             {day}
           </span>
@@ -215,8 +233,33 @@ function MonthGridCard({ monthObj, events, lang, onSelectEvent }) {
           )}
         </div>
 
+        {/* WHITE AREA PICTURE PREVIEW THUMBNAIL */}
+        {dayImageUrl && (
+          <div 
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelectEvent(eventWithImage);
+            }}
+            className="my-1 w-full h-9 sm:h-16 rounded-md overflow-hidden relative group cursor-pointer border border-black/10 shadow-sm shrink-0"
+            title="Click to view event photos"
+          >
+            <img 
+              src={dayImageUrl} 
+              alt="Festival Event" 
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              onError={(e) => { e.target.parentElement.style.display = 'none'; }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80 group-hover:opacity-40 transition-opacity"></div>
+            {totalPhotos > 1 && (
+              <span className="absolute bottom-0.5 right-0.5 px-1 py-0.2 rounded bg-black/80 text-[#FFD700] text-[8px] sm:text-[9px] font-extrabold flex items-center gap-0.5 shadow">
+                📷 {totalPhotos}
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Day Events Pill List */}
-        <div className="space-y-1 mt-0.5 sm:mt-1 overflow-y-auto max-h-[48px] sm:max-h-[85px] no-scrollbar">
+        <div className="space-y-1 mt-0.5 sm:mt-1 overflow-y-auto max-h-[48px] sm:max-h-[75px] no-scrollbar z-10">
           {dayEvents.map(evt => {
             const temple = TEMPLES.find(t => t.id === evt.templeId);
 

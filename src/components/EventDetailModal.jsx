@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TEMPLES } from '../data/templeEvents';
 import { getEventStatus, downloadIcsCalendarFile, openGoogleCalendar, shareToWhatsApp } from '../utils/eventStatus';
-import { X, Calendar, MapPin, Tag, Share2, Edit, Download } from 'lucide-react';
+import { X, Calendar, MapPin, Tag, Share2, Edit, Download, ChevronLeft, ChevronRight, Maximize2, Camera } from 'lucide-react';
 
 export default function EventDetailModal({
   event,
@@ -15,44 +15,143 @@ export default function EventDetailModal({
   const temple = TEMPLES.find(t => t.id === event.templeId);
   const statusObj = getEventStatus(event.startDate, event.endDate);
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: event.title,
-        text: `Check out ${event.title} at ${temple?.name || 'Tirumala'}!`,
-        url: window.location.href,
-      }).catch(err => console.error(err));
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert(lang === 'en' ? 'Portal link copied to clipboard!' : 'లింక్ కాపీ చేయబడింది!');
-    }
+  // Gallery & Lightbox State
+  const [activeImgIndex, setActiveImgIndex] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  // Normalize Images List
+  const allImages = [];
+  if (event.images && Array.isArray(event.images) && event.images.length > 0) {
+    event.images.forEach(img => {
+      if (typeof img === 'string' && img.trim() !== '') {
+        allImages.push({ url: img.trim(), caption: event.title || '' });
+      } else if (img && img.url && img.url.trim() !== '') {
+        allImages.push({ url: img.url.trim(), caption: img.caption || '' });
+      }
+    });
+  }
+  if (allImages.length === 0 && event.imageUrl) {
+    allImages.push({ url: event.imageUrl.trim(), caption: event.title || '' });
+  }
+
+  const activeImage = allImages[activeImgIndex] || null;
+
+  const handlePrevImage = (e) => {
+    e.stopPropagation();
+    setActiveImgIndex(prev => (prev === 0 ? allImages.length - 1 : prev - 1));
+  };
+
+  const handleNextImage = (e) => {
+    e.stopPropagation();
+    setActiveImgIndex(prev => (prev === allImages.length - 1 ? 0 : prev + 1));
+  };
+
+  const handleLightboxPrev = (e) => {
+    e.stopPropagation();
+    setLightboxIndex(prev => (prev === 0 ? allImages.length - 1 : prev - 1));
+  };
+
+  const handleLightboxNext = (e) => {
+    e.stopPropagation();
+    setLightboxIndex(prev => (prev === allImages.length - 1 ? 0 : prev + 1));
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div 
-        className="glass-card max-w-2xl w-full p-0 relative animate-slide-up bg-[#0B0E14] border-2 border-[#D4AF37]/50 shadow-2xl rounded-2xl max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Top Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-black/60 text-[#FFD700] hover:bg-black border border-[#D4AF37]/50 flex items-center justify-center transition-colors shadow-lg"
+    <>
+      <div className="modal-overlay" onClick={onClose}>
+        <div 
+          className="glass-card max-w-2xl w-full p-0 relative animate-slide-up bg-[#0B0E14] border-2 border-[#D4AF37]/50 shadow-2xl rounded-2xl max-h-[90vh] overflow-y-auto"
+          onClick={(e) => e.stopPropagation()}
         >
-          <X className="w-5 h-5" />
-        </button>
+          {/* Top Close Button */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-black/70 text-[#FFD700] hover:bg-black border border-[#D4AF37]/50 flex items-center justify-center transition-colors shadow-lg"
+          >
+            <X className="w-5 h-5" />
+          </button>
 
-        {/* Modal Image Header (Only rendered if custom imageUrl is provided by Admin) */}
-        {event.imageUrl && (
-          <div className="relative h-64 w-full bg-[#141923]">
-            <img 
-              src={event.imageUrl} 
-              alt={event.title} 
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-black/40 to-transparent"></div>
-          </div>
-        )}
+          {/* EVENT GALLERY CAROUSEL (If images present) */}
+          {allImages.length > 0 && activeImage && (
+            <div className="relative w-full bg-[#141923]">
+              {/* Main Active Image Display */}
+              <div 
+                onClick={() => {
+                  setLightboxIndex(activeImgIndex);
+                  setIsLightboxOpen(true);
+                }}
+                className="relative h-64 sm:h-80 w-full overflow-hidden cursor-pointer group"
+                title="Click picture to expand full screen"
+              >
+                <img 
+                  src={activeImage.url} 
+                  alt={activeImage.caption || event.title} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-transparent to-black/30"></div>
+
+                {/* Click to expand hover hint */}
+                <div className="absolute top-4 left-4 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-[#FFD700] text-xs font-bold flex items-center gap-1.5 border border-[#D4AF37]/30 shadow">
+                  <Maximize2 className="w-3.5 h-3.5" />
+                  <span>Click Full Screen</span>
+                </div>
+
+                {/* Next / Prev Navigation Overlay Arrows */}
+                {allImages.length > 1 && (
+                  <>
+                    <button
+                      onClick={handlePrevImage}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 text-[#FFD700] hover:bg-black border border-[#D4AF37]/40 flex items-center justify-center shadow-lg transition-transform hover:scale-110"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+
+                    <button
+                      onClick={handleNextImage}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 text-[#FFD700] hover:bg-black border border-[#D4AF37]/40 flex items-center justify-center shadow-lg transition-transform hover:scale-110"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </>
+                )}
+
+                {/* Image Caption & Counter Overlay */}
+                <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between gap-2">
+                  {activeImage.caption && (
+                    <div className="px-3 py-1 rounded-lg bg-black/80 backdrop-blur-md text-[#FFD700] text-xs font-bold border border-[#D4AF37]/40 max-w-[80%] truncate">
+                      📷 {activeImage.caption}
+                    </div>
+                  )}
+
+                  {allImages.length > 1 && (
+                    <div className="px-2.5 py-1 rounded-lg bg-black/80 backdrop-blur-md text-white text-[11px] font-extrabold border border-white/20 ml-auto shrink-0 font-mono">
+                      {activeImgIndex + 1} / {allImages.length}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Thumbnails Strip if multiple images */}
+              {allImages.length > 1 && (
+                <div className="flex items-center gap-2 p-2.5 bg-[#0B0E14] overflow-x-auto no-scrollbar border-b border-[#D4AF37]/30">
+                  {allImages.map((img, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveImgIndex(idx)}
+                      className={`h-12 w-16 rounded-lg overflow-hidden shrink-0 border-2 transition-all ${
+                        activeImgIndex === idx
+                          ? 'border-[#FFD700] ring-2 ring-[#FF5722] scale-105'
+                          : 'border-white/20 opacity-60 hover:opacity-100'
+                      }`}
+                    >
+                      <img src={img.url} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
         {/* Modal Body */}
         <div className="p-6 space-y-5">
@@ -153,8 +252,80 @@ export default function EventDetailModal({
 
           </div>
         </div>
-
       </div>
-    </div>
+
+      {/* FULL SCREEN LIGHTBOX PHOTO VIEWER */}
+      {isLightboxOpen && allImages.length > 0 && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/95 flex flex-col justify-between p-4 sm:p-6 animate-fade-in backdrop-blur-md"
+          onClick={() => setIsLightboxOpen(false)}
+        >
+          {/* Lightbox Top Header */}
+          <div className="flex items-center justify-between text-white z-10">
+            <div className="flex items-center gap-2">
+              <span className="font-serif font-bold text-[#FFD700] text-sm sm:text-base">
+                {event.title}
+              </span>
+              {allImages.length > 1 && (
+                <span className="px-2.5 py-0.5 rounded bg-white/10 text-xs font-mono font-bold text-[#94A3B8]">
+                  {lightboxIndex + 1} / {allImages.length}
+                </span>
+              )}
+            </div>
+
+            <button
+              onClick={() => setIsLightboxOpen(false)}
+              className="p-2 rounded-full bg-white/10 text-white hover:bg-white/30 transition-colors"
+              title="Close full screen view"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* Lightbox Main Image & Navigation Arrows */}
+          <div 
+            className="relative flex-grow flex items-center justify-center my-4 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img 
+              src={allImages[lightboxIndex].url} 
+              alt={allImages[lightboxIndex].caption || event.title} 
+              className="max-h-[78vh] max-w-full object-contain shadow-2xl rounded-xl border border-white/20 animate-scale-up"
+            />
+
+            {allImages.length > 1 && (
+              <>
+                <button
+                  onClick={handleLightboxPrev}
+                  className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/70 text-[#FFD700] hover:bg-black border border-[#D4AF37]/50 flex items-center justify-center shadow-2xl transition-transform hover:scale-110"
+                >
+                  <ChevronLeft className="w-7 h-7" />
+                </button>
+
+                <button
+                  onClick={handleLightboxNext}
+                  className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/70 text-[#FFD700] hover:bg-black border border-[#D4AF37]/50 flex items-center justify-center shadow-2xl transition-transform hover:scale-110"
+                >
+                  <ChevronRight className="w-7 h-7" />
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Lightbox Bottom Caption Bar */}
+          <div className="text-center z-10 max-w-2xl mx-auto">
+            {allImages[lightboxIndex].caption ? (
+              <div className="p-3 rounded-xl bg-black/80 border border-[#D4AF37]/40 text-[#FFD700] font-bold text-xs sm:text-sm shadow-xl">
+                📷 {allImages[lightboxIndex].caption}
+              </div>
+            ) : (
+              <div className="text-xs text-[#94A3B8] font-mono">
+                Click anywhere outside or ✕ to close
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }

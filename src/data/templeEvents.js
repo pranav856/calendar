@@ -159,6 +159,17 @@ export const INITIAL_EVENTS = [
     crowdLevel: 'High',
     crowdBadge: 'High Crowd',
     vahanam: 'Illuminated Water Raft Procession',
+    imageUrl: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=800&q=80',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=800&q=80',
+        caption: 'Sacred Float Procession on Kapila Theertham Water'
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1609766857041-ed402ea8069a?auto=format&fit=crop&w=800&q=80',
+        caption: 'Illuminated Temple Shrine Lighting & Pushkarini View'
+      }
+    ],
     description: 'Annual float festival of Lord Kapileswara Swamy gliding on the sacred waters of Kapila Theertham.'
   },
   {
