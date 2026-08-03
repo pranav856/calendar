@@ -251,6 +251,7 @@ export default function EventDetailModal({
             </button>
 
           </div>
+          </div>
         </div>
       </div>
 
