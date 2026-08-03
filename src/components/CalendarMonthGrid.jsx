@@ -46,36 +46,24 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
     const el = gridContainerRef.current;
     if (!el) return;
 
-    let isPointerDown = false;
     let startX = 0;
     let startY = 0;
-    let endX = 0;
-    let endY = 0;
+    let isDragging = false;
 
-    const onPointerDown = (e) => {
-      if (e.target.closest('button') || e.target.closest('select') || e.target.closest('a')) return;
-      isPointerDown = true;
-      startX = e.clientX;
-      startY = e.clientY;
-      endX = e.clientX;
-      endY = e.clientY;
+    const handleSwipeStart = (clientX, clientY) => {
+      startX = clientX;
+      startY = clientY;
+      isDragging = true;
     };
 
-    const onPointerMove = (e) => {
-      if (!isPointerDown) return;
-      endX = e.clientX;
-      endY = e.clientY;
-    };
+    const handleSwipeEnd = (clientX, clientY) => {
+      if (!isDragging) return;
+      isDragging = false;
+      const diffX = startX - clientX;
+      const diffY = startY - clientY;
 
-    const onPointerUp = () => {
-      if (!isPointerDown) return;
-      isPointerDown = false;
-
-      const diffX = startX - endX;
-      const diffY = startY - endY;
-
-      // Minimum drag/swipe distance 30px, horizontal movement greater than vertical
-      if (Math.abs(diffX) > 30 && Math.abs(diffX) > Math.abs(diffY)) {
+      // Minimum swipe distance 35px, horizontal movement greater than vertical
+      if (Math.abs(diffX) > 35 && Math.abs(diffX) > Math.abs(diffY)) {
         if (diffX > 0) {
           // Swipe Left -> Next Month
           if (activeIndexRef.current < MONTHS_LIST.length - 1) {
@@ -90,28 +78,53 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
       }
     };
 
-    const onKeyDown = (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
-      if (e.key === 'ArrowLeft') {
-        if (activeIndexRef.current > 0) {
-          setActiveMonthIndex(prev => prev - 1);
-        }
-      } else if (e.key === 'ArrowRight') {
-        if (activeIndexRef.current < MONTHS_LIST.length - 1) {
-          setActiveMonthIndex(prev => prev + 1);
-        }
+    // Touch Event Listeners (Mobile Devices)
+    const onTouchStart = (e) => {
+      if (e.target.closest('button') || e.target.closest('select') || e.target.closest('a')) return;
+      if (e.touches && e.touches.length === 1) {
+        handleSwipeStart(e.touches[0].clientX, e.touches[0].clientY);
       }
     };
 
-    el.addEventListener('pointerdown', onPointerDown);
-    window.addEventListener('pointermove', onPointerMove);
-    window.addEventListener('pointerup', onPointerUp);
+    const onTouchEnd = (e) => {
+      if (e.changedTouches && e.changedTouches.length === 1) {
+        handleSwipeEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+      }
+    };
+
+    // Mouse Event Listeners (Laptop / Web Browsers)
+    const onMouseDown = (e) => {
+      if (e.target.closest('button') || e.target.closest('select') || e.target.closest('a')) return;
+      if (e.button === 0) {
+        handleSwipeStart(e.clientX, e.clientY);
+      }
+    };
+
+    const onMouseUp = (e) => {
+      handleSwipeEnd(e.clientX, e.clientY);
+    };
+
+    // Keyboard Arrow Keys
+    const onKeyDown = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+      if (e.key === 'ArrowLeft') {
+        if (activeIndexRef.current > 0) setActiveMonthIndex(prev => prev - 1);
+      } else if (e.key === 'ArrowRight') {
+        if (activeIndexRef.current < MONTHS_LIST.length - 1) setActiveMonthIndex(prev => prev + 1);
+      }
+    };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchend', onTouchEnd, { passive: true });
+    el.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mouseup', onMouseUp);
     window.addEventListener('keydown', onKeyDown);
 
     return () => {
-      el.removeEventListener('pointerdown', onPointerDown);
-      window.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('pointerup', onPointerUp);
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchend', onTouchEnd);
+      el.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mouseup', onMouseUp);
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [MONTHS_LIST.length]);
