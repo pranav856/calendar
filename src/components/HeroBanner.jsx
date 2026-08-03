@@ -60,7 +60,7 @@ export default function HeroBanner({ lang, onSelectTemple }) {
           <div className="lg:col-span-7 space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFD700]/10 border border-[#FFD700]/30 text-[#FFD700] text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>{lang === 'en' ? 'Official 2026-27 TTD Panchangam Events' : '2026-27 అధికారిక టిటిడి పంచాంగ ఉత్సవాలు'}</span>
+              <span>{lang === 'en' ? 'Official 2026-27 TTD Temple Events' : '2026-27 అధికారిక టిటిడి దేవాలయాల ఉత్సవాలు'}</span>
             </div>
 
             <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-extrabold text-white leading-tight">
@@ -73,7 +73,7 @@ export default function HeroBanner({ lang, onSelectTemple }) {
 
             <p className="text-sm sm:text-base text-[#94A3B8] leading-relaxed max-w-2xl">
               {lang === 'en'
-                ? 'Filter and plan your pilgrimage across Tirumala & Tirupati temples with official TTD Panchangam schedules, interactive month calendar, and daily Nitya Seva timings.'
+                ? 'Filter and plan your pilgrimage across Tirumala & Tirupati temples with official TTD schedules, interactive month calendar, and daily Nitya Seva timings.'
                 : 'శ్రీ వెంకటేశ్వర స్వామి వారి తిరుమల దేవాలయంతో పాటు తిరుపతి పుణ్యక్షేత్రాల వార్షిక బ్రహ్మోత్సవాలు, వాహన సేవలు, నిత్య నైవేద్యాల సమగ్ర సమాచారం.'}
             </p>
 

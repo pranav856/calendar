@@ -165,7 +165,7 @@ export default function Header({
         {/* PINNED FAR RIGHT CONTROL COLUMN: THEME/ADMIN/LANG */}
         <div className="flex items-center gap-1.5 ml-auto shrink-0">
           {!isOnline && (
-            <span className="px-2 py-0.5 rounded-lg bg-red-900/80 border border-red-500 text-red-200 text-[10px] font-bold flex items-center gap-1 shadow animate-pulse" title="Network disconnected - Serving cached Panchangam events">
+            <span className="px-2 py-0.5 rounded-lg bg-red-900/80 border border-red-500 text-red-200 text-[10px] font-bold flex items-center gap-1 shadow animate-pulse" title="Network disconnected - Serving cached events">
               <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
               <span>Offline Mode</span>
             </span>

@@ -63,7 +63,7 @@ export default function CalendarScheduleView({
           </div>
           <div>
             <h3 className="font-serif text-lg font-bold gold-gradient-text">
-              {lang === 'en' ? 'Google Schedule View' : 'షెడ్యూల్ దర్శిని'}
+              {lang === 'en' ? 'Schedule View' : 'షెడ్యూల్ దర్శిని'}
             </h3>
             <p className="text-[11px] text-[#94A3B8]">
               {lang === 'en' ? 'Chronological agenda layout optimized for easy mobile reading' : 'మొబైల్ వీక్షణకు అనుకూలమైన కాలక్రమ ఉత్సవాల జాబితా'}

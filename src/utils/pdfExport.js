@@ -37,7 +37,7 @@ export function exportPanchangamPdf({ events = [], selectedMonth = 'all', select
 
     doc.setFontSize(11);
     doc.setTextColor(255, 255, 255);
-    doc.text('Official TTD Panchangam Event Calendar & Festival Schedule 2026-2027', pageWidth / 2, 22, { align: 'center' });
+    doc.text('Official TTD Event Calendar & Festival Schedule 2026-2027', pageWidth / 2, 22, { align: 'center' });
 
     // Filter Subtitle Details
     let filterText = 'All Shrines';
@@ -147,8 +147,8 @@ export function exportPanchangamPdf({ events = [], selectedMonth = 'all', select
 
     // Trigger Download
     const filename = selectedMonth === 'all' 
-      ? `Tirumala_Panchangam_2026_2027.pdf` 
-      : `Tirumala_Panchangam_${selectedMonth}.pdf`;
+      ? `Tirumala_Calendar_2026_2027.pdf` 
+      : `Tirumala_Calendar_${selectedMonth}.pdf`;
       
     doc.save(filename);
   } catch (err) {

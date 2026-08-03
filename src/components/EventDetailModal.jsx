@@ -101,26 +101,6 @@ export default function EventDetailModal({
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-transparent to-black/30"></div>
 
-                {/* Click to expand hover hint & Open in New Tab button */}
-                <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
-                  <div className="px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur-md text-[#FFD700] text-xs font-bold flex items-center gap-1.5 border border-[#D4AF37]/30 shadow">
-                    <Maximize2 className="w-3.5 h-3.5" />
-                    <span>Click Full Screen</span>
-                  </div>
-
-                  <a
-                    href={activeImage.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur-md text-[#FFD700] hover:text-white text-xs font-bold flex items-center gap-1 border border-[#D4AF37]/30 shadow hover:scale-105 transition-transform"
-                    title="Open image in a separate new tab"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    <span>Open in New Tab</span>
-                  </a>
-                </div>
-
                 {/* Next / Prev Navigation Overlay Arrows */}
                 {allImages.length > 1 && (
                   <>
@@ -298,29 +278,13 @@ export default function EventDetailModal({
               )}
             </div>
 
-            <div className="flex items-center gap-3">
-              {allImages[lightboxIndex]?.url && (
-                <a
-                  href={allImages[lightboxIndex].url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[#FFD700] hover:text-white text-xs font-bold flex items-center gap-1.5 border border-[#FFD700]/40 transition-colors shadow"
-                  title="Open image in separate new tab"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  <span>Open in New Tab</span>
-                </a>
-              )}
-
-              <button
-                onClick={() => setIsLightboxOpen(false)}
-                className="p-2 rounded-full bg-white/10 text-white hover:bg-white/30 transition-colors"
-                title="Close full screen view"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
+            <button
+              onClick={() => setIsLightboxOpen(false)}
+              className="p-2 rounded-full bg-white/10 text-white hover:bg-white/30 transition-colors ml-auto"
+              title="Close enlarged view"
+            >
+              <X className="w-6 h-6" />
+            </button>
           </div>
 
           {/* Lightbox Main Image & Navigation Arrows */}

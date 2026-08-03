@@ -277,20 +277,6 @@ export default function App() {
         {/* DEDICATED FULL-PAGE CALENDAR SECTION */}
         {activeTab === 'calendar-page' && (
           <div className="space-y-4">
-            <div className="glass-card p-6 border-l-4 border-l-[#FFD700] border-[#D4AF37]/30 flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h2 className="font-serif text-2xl font-extrabold gold-gradient-text flex items-center gap-2">
-                  <span>📅</span>
-                  <span>{lang === 'en' ? 'Temple Events & Panchangam Calendar' : 'దేవాలయాల ఉత్సవాల క్యాలెండర్'}</span>
-                </h2>
-                <p className="text-xs text-[#94A3B8] mt-1">
-                  {lang === 'en'
-                    ? 'Explore complete 2026-27 Panchangam utsavams across all shrines. Scroll horizontally across months or filter by temple and date.'
-                    : 'సప్త దివ్య పుణ్యక్షేత్రాల సమగ్ర ఉత్సవ పట్టిక.'}
-                </p>
-              </div>
-            </div>
-
             <CalendarView
               events={safeEventsList}
               lang={lang}
@@ -330,19 +316,19 @@ export default function App() {
               🔒 Locked — Feature Under Development
             </span>
             <h3 className="font-serif text-2xl sm:text-3xl font-extrabold text-white gold-gradient-text">
-              {lang === 'en' ? 'Sacred Panchangam Literature — Coming Soon' : 'పవిత్ర గ్రంథములు — త్వరలో లభిస్తుంది'}
+              {lang === 'en' ? 'Sacred Literature — Coming Soon' : 'పవిత్ర గ్రంథములు — త్వరలో లభిస్తుంది'}
             </h3>
             <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed max-w-md mx-auto">
               {lang === 'en'
-                ? 'Official TTD Panchangam source documents, ancient Sanskrit manuscripts, and festival literature are currently being digitized.'
-                : 'అధికారిక టిటిడి పంచాంగ ఆధార పత్రాలు మరియు సంస్కృత గ్రంథాల డిజిటలైజేషన్ పురోగతిలో ఉంది.'}
+                ? 'Official TTD source documents, ancient Sanskrit manuscripts, and festival literature are currently being digitized.'
+                : 'అధికారిక టిటిడి ఆధార పత్రాలు మరియు సంస్కృత గ్రంథాల డిజిటలైజేషన్ పురోగతిలో ఉంది.'}
             </p>
             <div className="pt-2">
               <button
                 onClick={() => setActiveTab('calendar-page')}
                 className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#FF5722] to-[#FFD700] text-black font-extrabold text-xs shadow-lg hover:brightness-110 active:scale-95 transition-all"
               >
-                {lang === 'en' ? '📅 Back to Panchangam Calendar' : '📅 క్యాలెండర్‌కు తిరిగి వెళ్ళండి'}
+                {lang === 'en' ? '📅 Back to Calendar' : '📅 క్యాలెండర్‌కు తిరిగి వెళ్ళండి'}
               </button>
             </div>
           </div>

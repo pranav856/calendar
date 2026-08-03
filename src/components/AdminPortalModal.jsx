@@ -132,7 +132,7 @@ export default function AdminPortalModal({
   const handleTriggerCloudSync = async () => {
     saveCloudConfig(cloudConfig);
     setIsSyncing(true);
-    setSyncStatusMsg('Synchronizing Panchangam events to cloud database...');
+    setSyncStatusMsg('Synchronizing temple events to cloud database...');
     const result = await pushEventsToCloud(events);
     setIsSyncing(false);
     setSyncStatusMsg(result.message);

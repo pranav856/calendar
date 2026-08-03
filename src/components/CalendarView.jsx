@@ -71,7 +71,7 @@ export default function CalendarView({
           
           <div className="flex items-center gap-3 w-full lg:w-auto">
             <span className="font-serif text-lg sm:text-xl font-bold gold-gradient-text shrink-0">
-              {lang === 'en' ? 'Panchangam Utsavams' : 'పంచాంగ ఉత్సవాలు'}
+              {lang === 'en' ? 'Temple Utsavams' : 'దేవాలయాల ఉత్సవాలు'}
             </span>
           </div>
 
@@ -101,7 +101,7 @@ export default function CalendarView({
           {/* Controls Right Group: (Admin ➕ Add Event) + View Mode Switcher */}
           <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto justify-end">
             
-            {/* PDF Panchangam Export Button */}
+            {/* PDF Export Button */}
             <button
               onClick={() => exportPanchangamPdf({
                 events: filteredEvents,
@@ -109,7 +109,7 @@ export default function CalendarView({
                 selectedTemple,
                 lang
               })}
-              title="Download Printable PDF Panchangam"
+              title="Download Printable PDF Calendar"
               className="px-3 py-2 rounded-xl bg-[#141923] border border-[#D4AF37]/60 text-[#FFD700] hover:bg-[#D4AF37]/20 font-bold text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-all"
             >
               <FileText className="w-3.5 h-3.5 text-[#FFD700]" />
@@ -149,7 +149,7 @@ export default function CalendarView({
                     ? 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-black shadow-md'
                     : 'text-[#94A3B8] hover:text-white'
                 }`}
-                title="Google Calendar Schedule Agenda View"
+                title="Schedule Agenda View"
               >
                 <List className="w-3.5 h-3.5" />
                 <span>{lang === 'en' ? 'Schedule View' : 'షెడ్యూల్'}</span>
