@@ -191,9 +191,9 @@ export default function CalendarScheduleView({
                       </div>
                     </div>
 
-                    {/* RIGHT COLUMN: GOOGLE CALENDAR SCHEDULE CARD */}
+                    {/* RIGHT COLUMN: SCHEDULE CARD WITH HOVER HIGHLIGHT */}
                     <div
-                      className="flex-grow glass-card p-3.5 sm:p-4 rounded-2xl border border-white/10 hover:border-[#FFD700] transition-all bg-[#0B0E14] shadow-lg relative overflow-hidden flex flex-col sm:flex-row justify-between gap-3 group-hover:shadow-2xl"
+                      className="flex-grow glass-card p-3.5 sm:p-4 rounded-2xl border border-white/10 group-hover:border-[#FFD700] group-hover:scale-[1.01] transition-all duration-300 shadow-lg group-hover:shadow-2xl relative overflow-hidden flex flex-col sm:flex-row justify-between gap-3 cursor-pointer"
                       style={{ borderLeft: `5px solid ${temple?.color || '#FFD700'}` }}
                     >
                       {/* Event Details */}

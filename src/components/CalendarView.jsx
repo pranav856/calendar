@@ -64,13 +64,13 @@ export default function CalendarView({
     <div id="calendar-view-container" className="space-y-6 scroll-mt-24">
       
       {/* Search & Filter Control Deck */}
-      <div className="glass-card p-4 sm:p-6 border-2 border-[#D4AF37]/40 space-y-4 shadow-xl">
+      <div className="glass-card p-4 sm:p-5 border-2 border-[#D4AF37]/40 space-y-4 shadow-xl w-full rounded-2xl">
         
         {/* Top Control Bar: Title + Search Bar + Controls */}
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 w-full">
           
-          <div className="flex items-center gap-3 w-full lg:w-auto">
-            <span className="font-serif text-lg sm:text-xl font-bold gold-gradient-text shrink-0">
+          <div className="flex items-center gap-3 w-full lg:w-auto shrink-0">
+            <span className="font-serif text-lg sm:text-2xl font-extrabold gold-gradient-text shrink-0">
               {lang === 'en' ? 'Temple Utsavams' : 'దేవాలయాల ఉత్సవాలు'}
             </span>
           </div>

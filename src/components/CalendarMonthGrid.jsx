@@ -48,22 +48,33 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
 
     let startX = 0;
     let startY = 0;
+    let currentX = 0;
+    let currentY = 0;
     let isDragging = false;
 
     const handleSwipeStart = (clientX, clientY) => {
       startX = clientX;
       startY = clientY;
+      currentX = clientX;
+      currentY = clientY;
       isDragging = true;
     };
 
-    const handleSwipeEnd = (clientX, clientY) => {
+    const handleSwipeMove = (clientX, clientY) => {
+      if (!isDragging) return;
+      currentX = clientX;
+      currentY = clientY;
+    };
+
+    const handleSwipeEnd = () => {
       if (!isDragging) return;
       isDragging = false;
-      const diffX = startX - clientX;
-      const diffY = startY - clientY;
 
-      // Minimum swipe distance 35px, horizontal movement greater than vertical
-      if (Math.abs(diffX) > 35 && Math.abs(diffX) > Math.abs(diffY)) {
+      const diffX = startX - currentX;
+      const diffY = startY - currentY;
+
+      // Minimum swipe distance 30px, horizontal movement > vertical movement
+      if (Math.abs(diffX) > 30 && Math.abs(diffX) > Math.abs(diffY)) {
         if (diffX > 0) {
           // Swipe Left -> Next Month
           if (activeIndexRef.current < MONTHS_LIST.length - 1) {
@@ -80,28 +91,40 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
 
     // Touch Event Listeners (Mobile Devices)
     const onTouchStart = (e) => {
-      if (e.target.closest('button') || e.target.closest('select') || e.target.closest('a')) return;
+      if (e.target.closest('button') || e.target.closest('select') || e.target.closest('a') || e.target.closest('input')) return;
       if (e.touches && e.touches.length === 1) {
         handleSwipeStart(e.touches[0].clientX, e.touches[0].clientY);
       }
     };
 
-    const onTouchEnd = (e) => {
-      if (e.changedTouches && e.changedTouches.length === 1) {
-        handleSwipeEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+    const onTouchMove = (e) => {
+      if (e.touches && e.touches.length === 1) {
+        handleSwipeMove(e.touches[0].clientX, e.touches[0].clientY);
       }
+    };
+
+    const onTouchEnd = () => {
+      handleSwipeEnd();
     };
 
     // Mouse Event Listeners (Laptop / Web Browsers)
     const onMouseDown = (e) => {
-      if (e.target.closest('button') || e.target.closest('select') || e.target.closest('a')) return;
+      if (e.target.closest('button') || e.target.closest('select') || e.target.closest('a') || e.target.closest('input')) return;
       if (e.button === 0) {
+        // Prevent default text selection so mouse drag works smoothly on Web!
+        e.preventDefault();
         handleSwipeStart(e.clientX, e.clientY);
       }
     };
 
-    const onMouseUp = (e) => {
-      handleSwipeEnd(e.clientX, e.clientY);
+    const onMouseMove = (e) => {
+      if (isDragging) {
+        handleSwipeMove(e.clientX, e.clientY);
+      }
+    };
+
+    const onMouseUp = () => {
+      handleSwipeEnd();
     };
 
     // Keyboard Arrow Keys
@@ -115,15 +138,21 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
     };
 
     el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: true });
     el.addEventListener('touchend', onTouchEnd, { passive: true });
+
     el.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
     window.addEventListener('keydown', onKeyDown);
 
     return () => {
       el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
       el.removeEventListener('touchend', onTouchEnd);
+
       el.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
       window.removeEventListener('keydown', onKeyDown);
     };
