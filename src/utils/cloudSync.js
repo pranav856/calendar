@@ -72,6 +72,12 @@ export async function pushEventsToCloud(events) {
         targetUrl = `${targetUrl}${sep}apikey=${encodeURIComponent(config.apiKey.trim())}`;
       }
 
+      // Supabase PostgREST requires on_conflict parameter when Prefer: resolution=merge-duplicates is sent
+      if (!targetUrl.includes('on_conflict=')) {
+        const sep = targetUrl.includes('?') ? '&' : '?';
+        targetUrl = `${targetUrl}${sep}on_conflict=id`;
+      }
+
       const response = await fetch(targetUrl, {
         method: 'POST',
         headers: {
@@ -97,10 +103,18 @@ export async function pushEventsToCloud(events) {
       });
 
       if (!response.ok) {
-        if (response.status === 404 || response.status === 400) {
-          throw new Error(`Supabase Connected! Create an 'events' table in Supabase (HTTP ${response.status})`);
+        let responseErrText = '';
+        try {
+          const errJson = await response.json();
+          responseErrText = errJson.message || errJson.hint || errJson.details || JSON.stringify(errJson);
+        } catch {
+          responseErrText = await response.text();
         }
-        throw new Error(`Cloud HTTP ${response.status}: ${response.statusText}`);
+
+        if (response.status === 404) {
+          throw new Error(`Supabase Table 'events' not found. Please run SQL setup script in Supabase.`);
+        }
+        throw new Error(`Supabase (HTTP ${response.status}): ${responseErrText || response.statusText}`);
       }
 
       const syncTime = updateLastSyncTimestamp();

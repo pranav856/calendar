@@ -700,6 +700,8 @@ export default function AdminPortalModal({
 );
 
 ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow public select" ON public.events;
+DROP POLICY IF EXISTS "Allow public insert update" ON public.events;
 CREATE POLICY "Allow public select" ON public.events FOR SELECT USING (true);
 CREATE POLICY "Allow public insert update" ON public.events FOR ALL USING (true) WITH CHECK (true);`;
                     navigator.clipboard.writeText(sql);
