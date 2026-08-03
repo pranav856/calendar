@@ -17,6 +17,7 @@ export default function AdminPortalModal({
   feedbackList,
   onUpdateFeedback,
   onDeleteFeedback
+}) {
   // Admin Navigation State
   const [activeAdminTab, setActiveAdminTab] = useState(mode || 'feedback-inbox');
 
