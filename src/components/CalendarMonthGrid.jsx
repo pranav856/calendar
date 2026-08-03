@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Sparkles } from 'lucide-react';
 import { TEMPLES } from '../data/templeEvents';
 
@@ -34,37 +34,37 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
 
   const [activeMonthIndex, setActiveMonthIndex] = useState(defaultCurrentIndex);
   
-  // Touch Swipe gesture support
-  const [touchStartX, setTouchStartX] = useState(null);
-  const [touchStartY, setTouchStartY] = useState(null);
+  // Touch Swipe gesture support using useRef
+  const touchState = useRef({ startX: 0, startY: 0, endX: 0, endY: 0 });
 
   const handleTouchStart = (e) => {
     if (e.touches && e.touches.length > 0) {
-      setTouchStartX(e.touches[0].clientX);
-      setTouchStartY(e.touches[0].clientY);
+      touchState.current.startX = e.touches[0].clientX;
+      touchState.current.startY = e.touches[0].clientY;
+      touchState.current.endX = e.touches[0].clientX;
+      touchState.current.endY = e.touches[0].clientY;
     }
   };
 
-  const handleTouchEnd = (e) => {
-    if (touchStartX === null || touchStartY === null) return;
-    if (!e.changedTouches || e.changedTouches.length === 0) return;
+  const handleTouchMove = (e) => {
+    if (e.touches && e.touches.length > 0) {
+      touchState.current.endX = e.touches[0].clientX;
+      touchState.current.endY = e.touches[0].clientY;
+    }
+  };
 
-    const touchEndX = e.changedTouches[0].clientX;
-    const touchEndY = e.changedTouches[0].clientY;
+  const handleTouchEnd = () => {
+    const diffX = touchState.current.startX - touchState.current.endX;
+    const diffY = touchState.current.startY - touchState.current.endY;
 
-    const diffX = touchStartX - touchEndX;
-    const diffY = touchStartY - touchEndY;
-
-    // Trigger month swipe only if horizontal movement is dominant and > 35px
-    if (Math.abs(diffX) > 35 && Math.abs(diffX) > Math.abs(diffY) * 1.2) {
+    // Trigger month change if horizontal swipe > 25px and greater than vertical scroll
+    if (Math.abs(diffX) > 25 && Math.abs(diffX) > Math.abs(diffY)) {
       if (diffX > 0) {
         handleNextMonth();
       } else {
         handlePrevMonth();
       }
     }
-    setTouchStartX(null);
-    setTouchStartY(null);
   };
 
   const handlePrevMonth = () => {
@@ -96,7 +96,7 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
               {lang === 'en' ? activeMonth.label : activeMonth.labelTe}
             </h3>
             <p className="text-[11px] text-[#94A3B8]">
-              {lang === 'en' ? '👈 Swipe left/right on grid or use buttons to change months 👉' : 'నెలల వారీగా తిప్పడానికి పక్కకు జరపండి లేదా బటన్లు ఉపయోగించండి'}
+              {lang === 'en' ? '👈 Swipe left/right on grid or tap side arrows to change months 👉' : 'నెలల వారీగా తిప్పడానికి పక్కకు జరపండి లేదా బాణం గుర్తును నొక్కండి'}
             </p>
           </div>
         </div>
@@ -129,7 +129,7 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
             }`}
           >
             <ChevronLeft className="w-4 h-4 text-[#FFD700]" />
-            <span>{lang === 'en' ? 'Prev Month' : 'గత నెల'}</span>
+            <span>{lang === 'en' ? 'Prev' : 'గత'}</span>
           </button>
 
           {/* NEXT MONTH BUTTON */}
@@ -143,19 +143,40 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
                 : 'bg-gradient-to-r from-[#FF5722] to-[#FFD700] text-black hover:brightness-110 active:scale-95 ring-2 ring-[#FFD700]'
             }`}
           >
-            <span>{lang === 'en' ? 'Next Month' : 'తరువాతి నెల'}</span>
+            <span>{lang === 'en' ? 'Next' : 'తరువాతి'}</span>
             <ChevronRight className="w-4 h-4 text-black" />
           </button>
         </div>
 
       </div>
 
-      {/* RENDERED ACTIVE MONTH CARD WITH SWIPE & KEYBOARD SUPPORT */}
+      {/* RENDERED ACTIVE MONTH CARD WITH SWIPE & FLOATING SIDE ARROWS */}
       <div 
         onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className="rounded-2xl border-2 border-[#D4AF37]/40 bg-[#0B0E14] shadow-2xl p-3 sm:p-6 transition-all duration-300 touch-pan-y"
+        className="rounded-2xl border-2 border-[#D4AF37]/40 bg-[#0B0E14] shadow-2xl p-2 sm:p-6 transition-all duration-300 relative group"
       >
+        {/* Floating Side Arrow Buttons for Quick Touch Navigation */}
+        {activeMonthIndex > 0 && (
+          <button
+            onClick={handlePrevMonth}
+            className="absolute left-1 top-1/2 -translate-y-1/2 z-30 w-8 h-8 rounded-full bg-black/80 text-[#FFD700] border border-[#FFD700]/50 flex items-center justify-center shadow-lg active:scale-90"
+            title="Previous Month"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+        )}
+
+        {activeMonthIndex < MONTHS_LIST.length - 1 && (
+          <button
+            onClick={handleNextMonth}
+            className="absolute right-1 top-1/2 -translate-y-1/2 z-30 w-8 h-8 rounded-full bg-black/80 text-[#FFD700] border border-[#FFD700]/50 flex items-center justify-center shadow-lg active:scale-90"
+            title="Next Month"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        )}
         <MonthGridCard 
           key={`${activeMonth.year}-${activeMonth.month}`}
           monthObj={activeMonth} 
