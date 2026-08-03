@@ -12,7 +12,22 @@ export default function CalendarScheduleView({
   onEditEvent,
   onDeleteEvent
 }) {
-  const [activeMonthFilter, setActiveMonthFilter] = useState('all');
+  // Determine initial current month name (e.g., "August 2026")
+  const getCurrentMonthKey = () => {
+    try {
+      const now = new Date();
+      const currYear = now.getFullYear();
+      const currMonth = now.getMonth();
+      const monthsEn = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      const monthsTe = ['జనవరి', 'ఫిబ్రవరి', 'మార్చి', 'ఏప్రిల్', 'మే', 'జూన్', 'జూలై', 'ఆగస్టు', 'సెప్టెంబరు', 'అక్టోబరు', 'నవంబరు', 'డిసెంబరు'];
+      const mName = lang === 'en' ? monthsEn[currMonth] : monthsTe[currMonth];
+      return `${mName} ${currYear}`;
+    } catch {
+      return 'August 2026';
+    }
+  };
+
+  const [activeMonthFilter, setActiveMonthFilter] = useState(() => getCurrentMonthKey());
 
   // Helper to format date string 'YYYY-MM-DD' into Day of Week, Day Num, Month Short Name
   const formatScheduleDate = (dateStr) => {
@@ -53,6 +68,11 @@ export default function CalendarScheduleView({
 
   const monthKeys = Object.keys(eventsByMonth);
 
+  // If activeMonthFilter is not in monthKeys and not 'all', ensure fallback
+  const effectiveMonthFilter = (activeMonthFilter !== 'all' && !monthKeys.includes(activeMonthFilter)) 
+    ? (monthKeys.length > 0 ? monthKeys[0] : 'all') 
+    : activeMonthFilter;
+
   return (
     <div className="space-y-6">
       {/* Schedule View Banner */}
@@ -77,7 +97,7 @@ export default function CalendarScheduleView({
             <button
               onClick={() => setActiveMonthFilter('all')}
               className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                activeMonthFilter === 'all'
+                effectiveMonthFilter === 'all'
                   ? 'bg-[#FF5722] text-white shadow-md'
                   : 'bg-[#141923] text-[#94A3B8] hover:text-white border border-white/10'
               }`}
@@ -89,7 +109,7 @@ export default function CalendarScheduleView({
                 key={mKey}
                 onClick={() => setActiveMonthFilter(mKey)}
                 className={`px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 ${
-                  activeMonthFilter === mKey
+                  effectiveMonthFilter === mKey
                     ? 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-black shadow-md'
                     : 'bg-[#141923] text-[#94A3B8] hover:text-[#FFD700] border border-white/10'
                 }`}
@@ -113,7 +133,7 @@ export default function CalendarScheduleView({
 
       {/* Chronological Month Sections */}
       {monthKeys.map(monthName => {
-        if (activeMonthFilter !== 'all' && activeMonthFilter !== monthName) return null;
+        if (effectiveMonthFilter !== 'all' && effectiveMonthFilter !== monthName) return null;
         const monthEvents = eventsByMonth[monthName];
 
         return (

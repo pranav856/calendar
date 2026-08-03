@@ -222,10 +222,10 @@ export default function DailySchedule({ lang }) {
         </div>
 
         {/* Section Switcher Tabs */}
-        <div className="flex items-center gap-1 bg-[#0B0E14] p-1.5 rounded-xl border border-[#D4AF37]/40 shrink-0">
+        <div className="flex flex-wrap items-center gap-1 bg-[#0B0E14] p-1 rounded-xl border border-[#D4AF37]/40 w-full sm:w-auto overflow-x-auto no-scrollbar">
           <button
             onClick={() => setViewSection('daily')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all ${
+            className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all shrink-0 ${
               viewSection === 'daily'
                 ? 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-black shadow-md'
                 : 'text-[#94A3B8] hover:text-white'
@@ -237,7 +237,7 @@ export default function DailySchedule({ lang }) {
 
           <button
             onClick={() => setViewSection('weekly-table')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all ${
+            className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all shrink-0 ${
               viewSection === 'weekly-table'
                 ? 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-black shadow-md'
                 : 'text-[#94A3B8] hover:text-white'
@@ -249,7 +249,7 @@ export default function DailySchedule({ lang }) {
 
           <button
             onClick={() => setViewSection('periodical')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all ${
+            className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all shrink-0 ${
               viewSection === 'periodical'
                 ? 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-black shadow-md'
                 : 'text-[#94A3B8] hover:text-white'
@@ -384,16 +384,16 @@ export default function DailySchedule({ lang }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {PERIODICAL_SEVAS_LIST.map((pSeva, pIdx) => (
-              <div key={pIdx} className="p-4 rounded-xl bg-[#141923] border border-[#D4AF37]/30 flex items-center justify-between gap-3">
+              <div key={pIdx} className="p-4 rounded-xl bg-[#141923] border border-[#D4AF37]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
                 <div>
-                  <span className="badge-gold text-[10px] uppercase">{pSeva.category}</span>
-                  <h4 className="font-serif text-base font-bold text-white mt-1">
+                  <span className="badge-gold text-[10px] uppercase font-extrabold">{pSeva.category}</span>
+                  <h4 className="font-serif text-sm sm:text-base font-bold text-white mt-1.5 leading-snug">
                     {pSeva.name}
                   </h4>
                 </div>
 
-                <div className="px-3 py-1.5 rounded-lg bg-[#0B0E14] border border-[#FF5722]/50 text-xs font-mono font-bold text-[#FFD700] shrink-0">
-                  {pSeva.frequency}
+                <div className="px-3 py-1.5 rounded-lg bg-[#0B0E14] border border-[#FF5722]/50 text-xs font-mono font-bold text-[#FFD700] self-start sm:self-auto shrink-0">
+                  ⏱️ {pSeva.frequency}
                 </div>
               </div>
             ))}

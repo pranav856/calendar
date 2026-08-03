@@ -258,20 +258,47 @@ export default function CalendarView({
                 const statusObj = getEventStatus(evt.startDate, evt.endDate);
                 const templeObj = TEMPLES.find(t => t.id === evt.templeId);
 
+                // Collect images for cover display
+                const evtImages = [];
+                if (evt.images && Array.isArray(evt.images) && evt.images.length > 0) {
+                  evt.images.forEach(img => {
+                    if (typeof img === 'string' && img.trim()) evtImages.push(img.trim());
+                    else if (img && img.url && String(img.url).trim()) evtImages.push(String(img.url).trim());
+                  });
+                }
+                if (evtImages.length === 0 && evt.imageUrl && String(evt.imageUrl).trim()) {
+                  evtImages.push(String(evt.imageUrl).trim());
+                }
+                const coverUrl = evtImages[0] || null;
+
                 return (
                   <div
                     key={evt.id}
-                    className={`glass-card rounded-2xl border-2 ${statusObj.bgCardBorder} hover:border-[#FFD700] transition-all overflow-hidden flex flex-col justify-between group shadow-xl bg-[#0B0E14] relative p-5 space-y-3`}
+                    onClick={() => onSelectEvent(evt)}
+                    className={`glass-card rounded-2xl border-2 ${statusObj.bgCardBorder} hover:border-[#FFD700] transition-all overflow-hidden flex flex-col justify-between group shadow-xl bg-[#0B0E14] relative p-4 space-y-3 cursor-pointer hover:scale-[1.01]`}
                   >
-                    {/* Custom Admin Image Header (Only shown if imageUrl exists) */}
-                    {evt.imageUrl && (
-                      <div className="relative h-44 w-full bg-[#141923] overflow-hidden rounded-xl -mt-1 -mx-1 mb-2">
+                    {/* Event Cover Image Header */}
+                    {coverUrl && (
+                      <div 
+                        className="relative h-48 w-full bg-[#141923] overflow-hidden rounded-xl -mt-1 -mx-1 mb-2 group-hover:brightness-110 transition-all shadow shrink-0"
+                        title="Click to view full photo & details"
+                      >
                         <img 
-                          src={evt.imageUrl} 
+                          src={coverUrl} 
                           alt={evt.title} 
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          onError={(e) => { e.target.parentElement.style.display = 'none'; }}
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-transparent to-black/40"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-transparent to-black/30"></div>
+                        
+                        <div className="absolute bottom-2 left-2 px-2.5 py-1 rounded-lg bg-black/80 backdrop-blur-md text-[#FFD700] text-[11px] font-bold flex items-center gap-1 border border-[#FFD700]/30 shadow">
+                          <span>📷 Tap photo to enlarge</span>
+                          {evtImages.length > 1 && (
+                            <span className="ml-1 px-1.5 py-0.2 rounded bg-[#FF5722] text-white text-[9px] font-extrabold">
+                              +{evtImages.length - 1}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     )}
 

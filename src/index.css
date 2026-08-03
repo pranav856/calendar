@@ -160,9 +160,9 @@ body {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(5, 7, 10, 0.85);
-  backdrop-filter: blur(8px);
-  z-index: 1000;
+  background: rgba(5, 7, 10, 0.90);
+  backdrop-filter: blur(10px);
+  z-index: 99999 !important;
   display: flex;
   align-items: center;
   justify-content: center;
