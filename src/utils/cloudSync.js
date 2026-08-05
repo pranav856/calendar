@@ -234,3 +234,54 @@ export async function pullEventsFromCloud() {
     return { success: false, message: err.message };
   }
 }
+
+/**
+ * Upload binary file directly to Supabase Storage bucket ('event-photos')
+ */
+export async function uploadFileToSupabaseStorage(file) {
+  const config = getCloudConfig();
+  if (!config.endpointUrl || !config.apiKey) {
+    return { success: false, message: 'Cloud credentials missing in Admin -> Cloud Sync.' };
+  }
+
+  try {
+    let baseUrl = config.endpointUrl.trim().replace(/\/$/, '');
+    if (baseUrl.includes('.supabase.co')) {
+      baseUrl = baseUrl.split('.supabase.co')[0] + '.supabase.co';
+    }
+
+    const ext = (file.name || 'image.jpg').split('.').pop() || 'jpg';
+    const filename = `utsavam_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
+    const uploadUrl = `${baseUrl}/storage/v1/object/event-photos/${filename}`;
+
+    const apiKey = config.apiKey.trim();
+
+    const response = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: {
+        'apikey': apiKey,
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': file.type || 'image/jpeg',
+        'x-upsert': 'true'
+      },
+      body: file
+    });
+
+    if (!response.ok) {
+      let errText = '';
+      try {
+        const errJson = await response.json();
+        errText = errJson.message || errJson.error || JSON.stringify(errJson);
+      } catch {
+        errText = await response.text();
+      }
+      throw new Error(`Storage error (${response.status}): ${errText}`);
+    }
+
+    const publicUrl = `${baseUrl}/storage/v1/object/public/event-photos/${filename}`;
+    return { success: true, publicUrl };
+  } catch (err) {
+    console.warn('Supabase Storage upload warning:', err);
+    return { success: false, message: err.message };
+  }
+}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Edit2, Trash2, ShieldCheck, Lock, LogOut, MessageSquare, FileSpreadsheet, Search, Eye, CheckCircle, Cloud, RefreshCw, Database, Server, Image, Video, Upload } from 'lucide-react';
 import { TEMPLES } from '../data/templeEvents';
-import { getCloudConfig, saveCloudConfig, pushEventsToCloud, getLastSyncTime } from '../utils/cloudSync';
+import { getCloudConfig, saveCloudConfig, pushEventsToCloud, getLastSyncTime, uploadFileToSupabaseStorage } from '../utils/cloudSync';
 import { normalizeImageUrl, compressImageFile } from '../utils/eventStatus';
 
 export default function AdminPortalModal({
@@ -507,11 +507,17 @@ export default function AdminPortalModal({
                               const file = e.target.files && e.target.files[0];
                               if (file) {
                                 try {
-                                  const compressedDataUrl = await compressImageFile(file);
-                                  handleImageFieldChange(idx, 'url', compressedDataUrl);
+                                  const storageRes = await uploadFileToSupabaseStorage(file);
+                                  if (storageRes.success && storageRes.publicUrl) {
+                                    handleImageFieldChange(idx, 'url', storageRes.publicUrl);
+                                  } else {
+                                    const compressedDataUrl = await compressImageFile(file);
+                                    handleImageFieldChange(idx, 'url', compressedDataUrl);
+                                  }
                                 } catch (err) {
                                   console.error(err);
-                                  alert('Error processing photo file. Please try another image.');
+                                  const compressedDataUrl = await compressImageFile(file);
+                                  handleImageFieldChange(idx, 'url', compressedDataUrl);
                                 }
                               }
                             }}
@@ -946,13 +952,19 @@ ALTER TABLE public.events DISABLE ROW LEVEL SECURITY;`;
                                   const file = e.target.files && e.target.files[0];
                                   if (file) {
                                     try {
+                                      const storageRes = await uploadFileToSupabaseStorage(file);
+                                      const finalUrl = (storageRes.success && storageRes.publicUrl)
+                                        ? storageRes.publicUrl
+                                        : await compressImageFile(file);
+                                      const updated = [...glossaryForm.images];
+                                      updated[idx].url = finalUrl;
+                                      setGlossaryForm({ ...glossaryForm, images: updated });
+                                    } catch (err) {
+                                      console.error(err);
                                       const compressedDataUrl = await compressImageFile(file);
                                       const updated = [...glossaryForm.images];
                                       updated[idx].url = compressedDataUrl;
                                       setGlossaryForm({ ...glossaryForm, images: updated });
-                                    } catch (err) {
-                                      console.error(err);
-                                      alert('Error processing photo file. Please try another image.');
                                     }
                                   }
                                 }}
