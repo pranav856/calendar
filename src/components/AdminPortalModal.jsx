@@ -713,10 +713,14 @@ export default function AdminPortalModal({
 
             {/* Sync Status Banner */}
             {syncStatusMsg && (
-              <div className="p-3 rounded-xl bg-[#141923] border border-[#FFD700]/40 text-xs font-bold text-[#FFD700] flex items-center justify-between">
+              <div className={`p-3.5 rounded-xl border text-xs font-bold flex items-center justify-between shadow ${
+                syncStatusMsg.startsWith('❌')
+                  ? 'bg-red-950/80 border-red-500 text-red-200'
+                  : 'bg-[#141923] border-[#FFD700]/40 text-[#FFD700]'
+              }`}>
                 <span>{syncStatusMsg}</span>
                 {lastSyncTime && (
-                  <span className="text-[10px] text-[#94A3B8] font-mono">
+                  <span className="text-[10px] text-[#94A3B8] font-mono shrink-0 ml-2">
                     Last: {new Date(lastSyncTime).toLocaleTimeString()}
                   </span>
                 )}
@@ -749,18 +753,21 @@ export default function AdminPortalModal({
                   type="url"
                   value={cloudConfig.endpointUrl}
                   onChange={(e) => setCloudConfigState({ ...cloudConfig, endpointUrl: e.target.value })}
-                  placeholder="https://xyz.supabase.co/rest/v1 or https://api.yourdomain.com"
+                  placeholder="e.g. https://xyz.supabase.co"
                   className="w-full px-3 py-2 rounded-xl bg-[#0B0E14] border border-[#D4AF37]/40 text-white text-xs font-mono"
                 />
+                <span className="text-[10px] text-[#94A3B8] block mt-0.5">
+                  💡 Tip: You can paste your main Supabase URL (e.g. <code>https://xyz.supabase.co</code>) or REST URL (<code>/rest/v1/events</code>).
+                </span>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-[#FFD700] block mb-1">API Key / Bearer Token</label>
+                <label className="text-xs font-bold text-[#FFD700] block mb-1">API Key (anon public key or service key)</label>
                 <input
                   type="password"
                   value={cloudConfig.apiKey}
                   onChange={(e) => setCloudConfigState({ ...cloudConfig, apiKey: e.target.value })}
-                  placeholder="sbp_xxxxxxxxxxxx or secret_key"
+                  placeholder="eyJhbGciOiJIUzI1Ni..."
                   className="w-full px-3 py-2 rounded-xl bg-[#0B0E14] border border-[#D4AF37]/40 text-white text-xs font-mono"
                 />
               </div>
@@ -769,7 +776,8 @@ export default function AdminPortalModal({
                 <button
                   type="button"
                   onClick={() => {
-                    const sql = `CREATE TABLE IF NOT EXISTS public.events (
+                    const sql = `-- Run this SQL script in Supabase -> SQL Editor -> New Query -> Run
+CREATE TABLE IF NOT EXISTS public.events (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   title_te TEXT,
@@ -785,18 +793,15 @@ export default function AdminPortalModal({
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Allow public select" ON public.events;
-DROP POLICY IF EXISTS "Allow public insert update" ON public.events;
-CREATE POLICY "Allow public select" ON public.events FOR SELECT USING (true);
-CREATE POLICY "Allow public insert update" ON public.events FOR ALL USING (true) WITH CHECK (true);`;
+-- Disable Row Level Security so sync works without auth errors
+ALTER TABLE public.events DISABLE ROW LEVEL SECURITY;`;
                     navigator.clipboard.writeText(sql);
                     alert('Copied 1-Click Supabase SQL Script! Paste in Supabase -> SQL Editor -> Run.');
                   }}
                   className="px-3 py-1.5 rounded-lg bg-[#141923] border border-[#D4AF37]/50 text-[#FFD700] hover:bg-[#D4AF37]/20 text-[11px] font-bold flex items-center gap-1 shadow"
                   title="Copy SQL code to create events table in Supabase"
                 >
-                  <span>📋 Copy Supabase SQL Script</span>
+                  <span>📋 Copy Supabase SQL Setup Script</span>
                 </button>
 
                 <div className="flex items-center gap-2">

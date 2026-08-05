@@ -58,18 +58,26 @@ export async function pushEventsToCloud(events) {
   // If valid endpoint is specified, send HTTP request
   if (config.endpointUrl && config.endpointUrl.trim() !== '') {
     try {
-      let targetUrl = config.endpointUrl.replace(/\/$/, '');
+      let targetUrl = config.endpointUrl.trim().replace(/\/$/, '');
       
-      // Auto-format Supabase REST API endpoint if user entered base Supabase URL
-      if (targetUrl.includes('.supabase.co') && !targetUrl.includes('/rest/v1')) {
-        targetUrl = `${targetUrl}/rest/v1/events`;
+      // Auto-format Supabase REST API endpoint if user entered base Supabase URL or rest/v1 URL
+      if (targetUrl.includes('.supabase.co')) {
+        if (!targetUrl.includes('/rest/v1')) {
+          targetUrl = `${targetUrl}/rest/v1/events`;
+        } else if (targetUrl.endsWith('/rest/v1')) {
+          targetUrl = `${targetUrl}/events`;
+        } else if (!targetUrl.endsWith('/events')) {
+          targetUrl = `${targetUrl}/events`;
+        }
       } else if (!targetUrl.endsWith('/events')) {
         targetUrl = `${targetUrl}/events`;
       }
 
-      if (config.apiKey && !targetUrl.includes('apikey=')) {
+      const apiKey = (config.apiKey || '').trim();
+
+      if (apiKey && !targetUrl.includes('apikey=')) {
         const sep = targetUrl.includes('?') ? '&' : '?';
-        targetUrl = `${targetUrl}${sep}apikey=${encodeURIComponent(config.apiKey.trim())}`;
+        targetUrl = `${targetUrl}${sep}apikey=${encodeURIComponent(apiKey)}`;
       }
 
       // Supabase PostgREST requires on_conflict parameter when Prefer: resolution=merge-duplicates is sent
@@ -97,8 +105,8 @@ export async function pushEventsToCloud(events) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': config.apiKey || '',
-          'Authorization': config.apiKey ? `Bearer ${config.apiKey}` : '',
+          'apikey': apiKey,
+          'Authorization': apiKey ? `Bearer ${apiKey}` : '',
           'Prefer': 'resolution=merge-duplicates,return=minimal'
         },
         body: payload
@@ -111,8 +119,8 @@ export async function pushEventsToCloud(events) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'apikey': config.apiKey || '',
-            'Authorization': config.apiKey ? `Bearer ${config.apiKey}` : '',
+            'apikey': apiKey,
+            'Authorization': apiKey ? `Bearer ${apiKey}` : '',
             'Prefer': 'return=minimal'
           },
           body: payload
@@ -132,35 +140,38 @@ export async function pushEventsToCloud(events) {
         }
 
         if (response.status === 404) {
-          throw new Error(`Supabase Table 'events' not found. Please run SQL setup script in Supabase.`);
+          throw new Error(`Supabase Table 'events' not found (HTTP 404). Please run the SQL Setup Script in Supabase!`);
+        }
+        if (response.status === 401 || response.status === 403) {
+          throw new Error(`Supabase Permission Denied (HTTP ${response.status}): ${responseErrText || 'Check API Key & RLS Policies in Supabase'}`);
         }
         throw new Error(`Supabase (HTTP ${response.status}): ${responseErrText || response.statusText}`);
       }
 
       const syncTime = updateLastSyncTimestamp();
-      return { success: true, message: 'Events synchronized to Cloud successfully!', timestamp: syncTime };
+      return { success: true, isError: false, message: '✅ All Events & Photos Synchronized to Supabase Cloud Successfully!', timestamp: syncTime };
     } catch (err) {
-      console.warn('Cloud sync endpoint notification:', err);
+      console.warn('Cloud sync error:', err);
       const syncTime = updateLastSyncTimestamp();
       const errMsg = err.message && err.message.includes('Failed to fetch')
-        ? 'URL formatted to Supabase REST (/rest/v1/events). Click Save Settings & Sync again.'
+        ? 'Network Connection Failed to reach Supabase. Check your Supabase URL & Internet Connection.'
         : err.message;
       return { 
-        success: true, 
-        isFallback: true, 
-        message: `Offline Fallback: ${errMsg}`, 
+        success: false, 
+        isError: true, 
+        message: `❌ Sync Failed: ${errMsg}`, 
         timestamp: syncTime 
       };
     }
   }
 
-  // Simulated Cloud Sync when no endpoint URL is provided
-  await new Promise(resolve => setTimeout(resolve, 600));
+  // Local Sync message when no endpoint URL is provided
+  await new Promise(resolve => setTimeout(resolve, 300));
   const syncTime = updateLastSyncTimestamp();
   return {
     success: true,
     isLocalOnly: true,
-    message: 'Local Cache Synced (Configure Cloud Endpoint in Admin to enable live cloud database)',
+    message: 'Local Cache Synced (Enter Supabase Endpoint URL & API Key below to enable Live Cloud Database)',
     timestamp: syncTime
   };
 }
