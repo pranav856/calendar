@@ -65,16 +65,20 @@ export default function App() {
     }
   }, [isAdminLoggedIn]);
 
-  // Dynamic Events State Initializer with complete merge for edited default events
+  // Dynamic Events State Initializer with complete merge for edited default events & deleted tracking
   const [eventsList, setEventsList] = useState(() => {
     try {
+      // Load deleted event IDs
+      const deletedStored = localStorage.getItem('tirumala_deleted_event_ids_v1');
+      const deletedIds = new Set(deletedStored ? JSON.parse(deletedStored) : []);
+
       const storedEvents = localStorage.getItem('tirumala_custom_events_v5');
       if (storedEvents) {
         const parsed = JSON.parse(storedEvents);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Remove Independence Day events if present
+          // Remove Independence Day events & deleted events
           const cleanParsed = parsed.filter(e => {
-            if (!e || !e.id) return false;
+            if (!e || !e.id || deletedIds.has(e.id)) return false;
             const title = (e.title || '').toLowerCase();
             const titleTe = e.titleTe || '';
             const desc = (e.description || '').toLowerCase();
@@ -84,10 +88,12 @@ export default function App() {
           // Map stored events by ID
           const storedMap = new Map(cleanParsed.map(e => [e.id, e]));
 
-          // Replace default events with any stored edits
-          const mergedInitial = INITIAL_EVENTS.map(initEvt => {
-            return storedMap.has(initEvt.id) ? storedMap.get(initEvt.id) : initEvt;
-          });
+          // Replace default events with any stored edits, excluding deleted ones
+          const mergedInitial = INITIAL_EVENTS
+            .filter(initEvt => !deletedIds.has(initEvt.id))
+            .map(initEvt => {
+              return storedMap.has(initEvt.id) ? storedMap.get(initEvt.id) : initEvt;
+            });
 
           // Keep newly created custom events (whose ID is not in INITIAL_EVENTS)
           const initIds = new Set(INITIAL_EVENTS.map(e => e.id));
@@ -96,7 +102,7 @@ export default function App() {
           return [...mergedInitial, ...newCustomEvents];
         }
       }
-      return INITIAL_EVENTS;
+      return INITIAL_EVENTS.filter(initEvt => !deletedIds.has(initEvt.id));
     } catch (e) {
       console.error('Error loading events from storage:', e);
       return INITIAL_EVENTS;
@@ -300,6 +306,14 @@ export default function App() {
 
   const handleDeleteEvent = (eventId) => {
     setEventsList(prev => prev.filter(e => e.id !== eventId));
+    try {
+      const deletedStored = localStorage.getItem('tirumala_deleted_event_ids_v1');
+      const deletedIds = new Set(deletedStored ? JSON.parse(deletedStored) : []);
+      deletedIds.add(eventId);
+      localStorage.setItem('tirumala_deleted_event_ids_v1', JSON.stringify([...deletedIds]));
+    } catch (e) {
+      console.error('Error saving deleted event ID:', e);
+    }
   };
 
   const handleOpenEditModalForEvent = (event) => {

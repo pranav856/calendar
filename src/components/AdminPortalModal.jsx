@@ -481,16 +481,15 @@ export default function AdminPortalModal({
                 <div key={idx} className="p-2.5 rounded-lg bg-[#0B0E14] border border-white/10 space-y-2 relative group">
                   <div className="flex items-center justify-between text-[11px] font-bold text-white/80">
                     <span>Photo #{idx + 1} {idx === 0 ? '(Main Cover Photo)' : ''}</span>
-                    {eventForm.images.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveImageField(idx)}
-                        className="text-red-400 hover:text-red-300 p-1"
-                        title="Remove photo"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImageField(idx)}
+                      className="text-red-400 hover:text-red-300 p-1 flex items-center gap-1 bg-red-950/60 border border-red-500/40 px-2 py-0.5 rounded"
+                      title="Remove / delete photo"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                      <span className="text-[10px]">Remove Photo</span>
+                    </button>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

@@ -351,11 +351,11 @@ export default function CalendarView({
                     {/* Content Section */}
                     <div className="p-4 space-y-3 flex-grow flex flex-col justify-between">
                       <div>
-                        <h3 className="font-serif text-lg font-bold text-white group-hover:text-[#FFD700] transition-colors leading-snug">
+                        <h3 className="font-serif text-lg font-bold text-slate-900 dark:text-white group-hover:text-amber-700 dark:group-hover:text-[#FFD700] transition-colors leading-snug">
                           {lang === 'en' ? evt.title : (evt.titleTe || evt.title)}
                         </h3>
 
-                        <div className="flex items-center gap-2 text-xs font-mono text-[#FFD700] font-bold mt-1">
+                        <div className="flex items-center gap-2 text-xs font-mono text-amber-800 dark:text-[#FFD700] font-bold mt-1">
                           <Calendar className="w-3.5 h-3.5 text-[#FF5722]" />
                           <span>
                             {evt.startDate === evt.endDate
@@ -364,7 +364,7 @@ export default function CalendarView({
                           </span>
                         </div>
 
-                        <p className="text-xs text-[#94A3B8] line-clamp-2 mt-2 leading-relaxed">
+                        <p className="text-xs text-slate-700 dark:text-[#94A3B8] line-clamp-2 mt-2 leading-relaxed font-medium">
                           {lang === 'en' ? evt.description : (evt.descriptionTe || evt.description)}
                         </p>
                       </div>
