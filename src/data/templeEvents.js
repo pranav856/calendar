@@ -413,22 +413,40 @@ export const INITIAL_EVENTS = [
   {
     id: 'ttd-2026-08-05-govindaraja',
     templeId: 'govindaraja',
-    title: 'Andal Tiruvadipuram Utsavam',
-    titleTe: 'ఆండాళ్ తిరువాడిపురం ఉత్సవం',
+    title: 'Sri Andal Thiruvadipuram Utsavam',
+    titleTe: 'శ్రీ గోవిందరాజస్వామివారి ఆలయంలో శ్రీ ఆండాళ్ తిరువడిపురం ఉత్సవాలు',
     startDate: '2026-08-05',
     endDate: '2026-08-14',
-    category: 'special-puja',
+    category: 'brahmotsavam',
     highlight: true,
     isMajor: true,
     location: 'Sri Govindaraja Swamy Temple, Tirupati',
-    time: '08:00 AM - 07:00 PM Daily',
+    time: 'Morning Tirumanjanam & Evening Asthanam Daily',
     crowdLevel: 'High',
     crowdBadge: '10-Day Festival',
-    description: '10-day annual Andal Tiruvadipuram Utsavam celebrated with celestial fervour at Sri Govindaraja Swamy Temple.',
-    descriptionTe: 'తిరుపతి శ్రీ గోవిందరాజస్వామివారి ఆలయంలో ఆగస్టు 5 నుండి 14వ తేదీ వరకు అత్యంత వైభవంగా జరిగే ఆండాళ్ తిరువాడిపురం ఉత్సవం.'
+    description: 'The annual Sri Andal Thiruvadipuram Utsavam will be celebrated at Sri Govindaraja Swamy Temple, Tirupati, from August 5 to 14 with religious fervour. During the festival, Tirumanjanam will be performed to Sri Andal every morning, followed by Asthanam in the evening.',
+    descriptionTe: 'తిరుపతిలోని శ్రీ గోవిందరాజస్వామివారి ఆలయంలో ఆగస్టు 5 నుండి 14వ తేదీ వరకు శ్రీ వైష్ణవ సంప్రదాయంలో విశిష్ట స్థానం కలిగిన శ్రీ ఆండాళ్ అమ్మవారి తిరువడిపురం ఉత్సవాలు భక్తిశ్రద్ధలతో వైభవంగా నిర్వహించనున్నారు. ఉత్సవాల్లో భాగంగా ప్రతిరోజూ ఉదయం శ్రీ ఆండాళ్ అమ్మవారికి తిరుమంజనం, సాయంత్రం ఆస్థానం నిర్వహిస్తారు.'
   },
 
   // --- August 7, 2026 ---
+  {
+    id: 'ttd-2026-08-07-kapileswara-aadi-krithika',
+    templeId: 'kapileswara',
+    title: 'Aadi Krithika Festival - Sri Kapileswara Swamy Temple',
+    titleTe: 'శ్రీ కపిలేశ్వరస్వామివారి ఆలయంలో ఆడికృత్తిక పర్వదినోత్సవం',
+    startDate: '2026-08-07',
+    endDate: '2026-08-07',
+    category: 'special-puja',
+    highlight: true,
+    isMajor: true,
+    location: 'Sri Kapileswara Swamy Temple, Tirupati',
+    time: '09:30 AM - 10:30 AM & 06:00 PM - 08:00 PM',
+    crowdLevel: 'High',
+    crowdBadge: 'Aadi Krithika',
+    vahanam: 'Thiruveedhi Utsavam Procession (తిరువీధి ఉత్సవం)',
+    description: 'The Aadi Krithika festival will be celebrated with religious fervour at Sri Kapileswara Swamy Temple, Tirupati, on August 7. On the occasion, Snapana Tirumanjanam will be performed to the processional deities of Sri Subrahmanya Swamy along with Sri Valli and Sri Devasena from 9.30 am to 10.30 am with milk, curd, honey, sandalwood and other fragrant ingredients. Later, the Thiruveedhi Utsavam will be held from 6 pm to 8 pm.',
+    descriptionTe: 'తిరుపతిలోని శ్రీ కపిలేశ్వరస్వామివారి ఆలయంలో ఆగస్టు 7వ తేదీన ఆడికృత్తిక పర్వదినాన్ని పురస్కరించుకుని శ్రీ వల్లి దేవసేన సమేత శ్రీ సుబ్రహ్మణ్యేశ్వరస్వామి వారికి విశేష ఉత్సవాలు భక్తిశ్రద్ధలతో నిర్వహించనున్నారు. ఈ సందర్భంగా ఉదయం 9.30 గంటల నుండి 10.30 గంటల వరకు ఉత్సవమూర్తులకు శాస్త్రోక్తంగా స్నపన తిరుమంజనం నిర్వహిస్తారు. పాలు, పెరుగు, తేనె, చందనం తదితర సుగంధ ద్రవ్యాలతో అభిషేకం జరిపి విశేష పూజలు నిర్వహిస్తారు. అనంతరం సాయంత్రం 6 గంటల నుండి రాత్రి 8 గంటల వరకు శ్రీ వల్లి దేవసేన సమేత శ్రీ సుబ్రహ్మణ్యేశ్వరస్వామివారి తిరువీధి ఉత్సవం వైభవంగా జరుగుతుంది.'
+  },
   {
     id: 'ttd-2026-08-07-tiruchanur',
     templeId: 'tiruchanur',
@@ -463,10 +481,10 @@ export const INITIAL_EVENTS = [
     descriptionTe: 'శుక్రవారం సందర్భంగా ఉదయం 7 గంటలకు శ్రీ ప్రసన్న వేంకటేశ్వరస్వామివారికి వస్త్రాలంకార సేవ, అభిషేకం.'
   },
   {
-    id: 'ttd-2026-08-07-kodandarama',
+    id: 'ttd-2026-08-07-kodandarama-ankurarpanam',
     templeId: 'kodandarama',
-    title: 'Annual Pavitrotsavams Ankurarpanam - Sri Kodandarama Swamy Temple',
-    titleTe: 'పవిత్రోత్సవాలకు అంకురార్పణ - శ్రీ కోదండరామస్వామివారి ఆలయం',
+    title: 'Sri Kodandarama Swamy Pavithrotsavams - Ankurarpanam',
+    titleTe: 'శ్రీ కోదండరామస్వామివారి పవిత్రోత్సవాలు - అంకురార్పణ',
     startDate: '2026-08-07',
     endDate: '2026-08-07',
     category: 'special-puja',
@@ -475,8 +493,8 @@ export const INITIAL_EVENTS = [
     time: '06:30 PM',
     crowdLevel: 'High',
     crowdBadge: 'Ankurarpanam',
-    description: 'Ankurarpanam performed in the evening to mark the grand commencement of the annual Pavitrotsavams.',
-    descriptionTe: 'శ్రీ కోదండరామస్వామివారి ఆలయంలో పవిత్రోత్సవాలకు సాయంత్రం శాస్త్రోక్తంగా అంకురార్పణ.'
+    description: 'Ankurarpanam performed on Friday evening marking the sacred prelude to Sri Kodandarama Swamivari Pavithrotsavams (Aug 07 to 10).',
+    descriptionTe: 'శ్రీ కోదండరామస్వామివారి ఆలయంలో ఆగస్టు 7 నుండి 10 వరకు జరిగే పవిత్రోత్సవాలకు శుక్రవారం సాయంత్రం శాస్త్రోక్తంగా అంకురార్పణ.'
   },
 
   // --- August 8, 2026 ---
@@ -495,24 +513,62 @@ export const INITIAL_EVENTS = [
     crowdBadge: 'Saturday Devotions',
     vahanam: 'Tiruchi Vehicle Procession',
     description: 'Abhishekam to presiding deities at 6:00 AM (Ticket: Rs. 20). Evening Unjal Seva at 5:00 PM, followed by Tiruchi Utsavam through Mada Streets at 5:30 PM.',
-    descriptionTe: 'శనివారం సందర్భంగా ఉదయం 6 గంటలకు శ్రీ సీతారామ లక్ష్మణుల మూలవర్ల అభిషేకం (రూ.20/-). సాయంత్రం 5 గంటలకు ఊంజల్సేవ, 5.30 గంటలకు తిరుచ్చిపై మాడ వీధుల్లో విహరణం.'
+    descriptionTe: 'శనివారం సందర్భంగా ఉదయం 6 గంటలకు మూలవర్ల అభిషేకం (రూ.20/-). సాయంత్రం 5 గంటలకు ఊంజల్సేవ, 5.30 గంటలకు తిరుచ్చిపై మాడ వీధుల్లో ఊరేగింపు.'
   },
   {
-    id: 'ttd-2026-08-08-kodandarama-pavitrotsavam',
+    id: 'ttd-2026-08-08-kodandarama-prathishta',
     templeId: 'kodandarama',
-    title: 'Sri Kodandarama Swamy Annual Pavitrotsavams',
-    titleTe: 'శ్రీ కోదండరామస్వామివారి పవిత్రోత్సవాలు',
+    title: 'Sri Kodandarama Swamy Pavithrotsavams - Pavithra Prathishta',
+    titleTe: 'శ్రీ కోదండరామస్వామివారి పవిత్రోత్సవాలు - పవిత్ర ప్రతిష్ఠ',
     startDate: '2026-08-08',
+    endDate: '2026-08-08',
+    category: 'special-puja',
+    highlight: true,
+    isMajor: true,
+    location: 'Sri Kodandarama Swamy Temple, Tirupati',
+    time: '08:00 AM - 12:00 PM',
+    crowdLevel: 'High',
+    crowdBadge: 'Pavithra Prathishta',
+    description: 'Pavithra Prathishta ceremony performed on Day 2 of Sri Kodandarama Swamivari Pavithrotsavams in Sravanamasam.',
+    descriptionTe: 'శ్రీ కోదండరామస్వామివారి పవిత్రోత్సవాలలో భాగంగా రెండవ రోజు పవిత్ర ప్రతిష్ఠ క్రతువు శాస్త్రోక్తంగా నిర్వహణ.'
+  },
+
+  // --- August 9, 2026 ---
+  {
+    id: 'ttd-2026-08-09-kodandarama-samarpana',
+    templeId: 'kodandarama',
+    title: 'Sri Kodandarama Swamy Pavithrotsavams - Pavithra Samarpana',
+    titleTe: 'శ్రీ కోదండరామస్వామివారి పవిత్రోత్సవాలు - పవిత్ర సమర్పణ',
+    startDate: '2026-08-09',
+    endDate: '2026-08-09',
+    category: 'special-puja',
+    highlight: true,
+    isMajor: true,
+    location: 'Sri Kodandarama Swamy Temple, Tirupati',
+    time: '08:00 AM - 12:00 PM',
+    crowdLevel: 'High',
+    crowdBadge: 'Pavithra Samarpana',
+    description: 'Pavithra Samarpana performed on Day 3 of Sri Kodandarama Swamivari Pavithrotsavams.',
+    descriptionTe: 'శ్రీ కోదండరామస్వామివారి పవిత్రోత్సవాలలో భాగంగా మూడవ రోజు పవిత్ర మాలల సమర్పణ క్రతువు.'
+  },
+
+  // --- August 10, 2026 ---
+  {
+    id: 'ttd-2026-08-10-kodandarama-poornahuthi',
+    templeId: 'kodandarama',
+    title: 'Sri Kodandarama Swamy Pavithrotsavams - Poornahuthi',
+    titleTe: 'శ్రీ కోదండరామస్వామివారి పవిత్రోత్సవాలు - పూర్ణాహుతి (సమాప్తి)',
+    startDate: '2026-08-10',
     endDate: '2026-08-10',
     category: 'special-puja',
     highlight: true,
     isMajor: true,
     location: 'Sri Kodandarama Swamy Temple, Tirupati',
-    time: '08:00 AM - 12:00 PM Daily',
+    time: '08:00 AM - 12:00 PM',
     crowdLevel: 'High',
-    crowdBadge: 'Annual Festival',
-    description: 'Annual Pavitrotsavams conducted with great religious fervour at Sri Kodandarama Swamy Temple from August 8 to 10.',
-    descriptionTe: 'ఆగస్టు 8 నుండి 10వ తేదీ వరకు శ్రీ కోదండరామస్వామివారి పవిత్రోత్సవాలు అత్యంత ఆధ్యాత్మికోత్సవంగా నిర్వహించబడతాయి.'
+    crowdBadge: 'Poornahuthi',
+    description: 'Grand Poornahuthi ceremony marking the conclusion of Sri Kodandarama Swamivari Pavithrotsavams.',
+    descriptionTe: 'శ్రీ కోదండరామస్వామివారి పవిత్రోత్సవాల మహోన్నత ముగింపు ఘట్టంగా పూర్ణాహుతి నిర్వహిస్తారు.'
   },
 
   // --- August 9, 2026 ---
@@ -605,6 +661,24 @@ export const INITIAL_EVENTS = [
   },
 
   // --- August 14, 2026 ---
+  {
+    id: 'ttd-2026-08-14-govindaraja-sattumora',
+    templeId: 'govindaraja',
+    title: 'Sri Andal Thiruvadipuram Utsavam Sattumora & Grand Alipiri Procession',
+    titleTe: 'శ్రీ ఆండాళ్ తిరువడిపురం ఉత్సవాల ముగింపు - శాత్తుమొర & అలిపిరి దివ్య ఊరేగింపు',
+    startDate: '2026-08-14',
+    endDate: '2026-08-14',
+    category: 'brahmotsavam',
+    highlight: true,
+    isMajor: true,
+    location: 'Sri Govindaraja Swamy Temple & Alipiri Route, Tirupati',
+    time: '09:30 AM - 10:30 AM (Snapana Tirumanjanam), 04:00 PM - 08:00 PM (Alipiri Procession), 08:00 PM (Sattumora)',
+    crowdLevel: 'Peak',
+    crowdBadge: 'Grand Concluding Sattumora',
+    vahanam: 'Alipiri Grand Procession (అలిపిరి మహోత్సవ ఊరేగింపు)',
+    description: 'On August 14, the concluding Sattumora will be observed for Sri Andal Thiruvadipuram Utsavam at Sri Govindaraja Swamy Temple. Snapana Tirumanjanam for processional deities of Sri Govindaraja Swamy and Sri Andal will be held from 9.30 am to 10.30 am. A grand procession to Alipiri with Asthanam will take place from 4 pm to 8 pm, followed by a return procession through Geetha Mandiram, Sri Vikhanasacharya Temple, and Sri Chinna Jeeyar Mutt. The festival will conclude with Sattumora at 8 pm in Sri Andal’s shrine.',
+    descriptionTe: 'ఉత్సవాల ముగింపు సందర్భంగా ఆగస్టు 14న శ్రీ ఆండాళ్ అమ్మవారి శాత్తుమొర అత్యంత వైభవంగా జరుగుతుంది. ఉదయం 9.30 నుండి 10.30 గంటల వరకు శ్రీ గోవిందరాజస్వామివారు, శ్రీ ఆండాళ్ అమ్మవారి ఉత్సవమూర్తులకు స్నపన తిరుమంజనం నిర్వహిస్తారు. సాయంత్రం 4 గంటల నుండి రాత్రి 8 గంటల వరకు శ్రీ గోవిందరాజస్వామివారు, శ్రీ ఆండాళ్ అమ్మవారిని అలిపిరికి మహోత్సవ ఊరేగింపుగా తీసుకువెళ్లి అక్కడ ఆస్థానం నిర్వహిస్తారు. అనంతరం ప్రత్యేక పూజల తర్వాత అలిపిరి నుండి రామనగర్ క్వార్టర్స్లోని గీతా మందిరం, ఆర్.ఎస్. మాడ వీధిలోని శ్రీ విఖనసాచార్యుల ఆలయం, శ్రీ చిన్నజీయర్ మఠం మీదుగా దివ్య ఊరేగింపు ఆలయానికి చేరుకుంటుంది. రాత్రి 8 గంటలకు శ్రీ ఆండాళ్ అమ్మవారి సన్నిధిలో శాత్తుమొర నిర్వహించి ఉత్సవాలకు మంగళం పలుకుతారు.'
+  },
   {
     id: 'ttd-2026-08-14-tiruchanur',
     templeId: 'tiruchanur',
@@ -818,10 +892,10 @@ export const INITIAL_EVENTS = [
     descriptionTe: 'శనివారం సందర్భంగా ఉదయం 6 గంటలకు మూలవర్ల అభిషేకం (రూ.20/-). సాయంత్రం 5 గంటలకు ఊంజల్సేవ, 5.30 గంటలకు తిరుచ్చిపై మాడ వీధుల్లో ఊరేగింపు.'
   },
   {
-    id: 'ttd-2026-08-22-tirumala',
+    id: 'ttd-2026-08-22-tirumala-ankurarpanam',
     templeId: 'tirumala-main',
-    title: 'Ankurarpanam for Annual Srivari Pavitrotsavams',
-    titleTe: 'తిరుమల శ్రీవారి పవిత్రోత్సవాలకు అంకురార్పణ',
+    title: 'Srivari Pavithrotsavams - Ankurarpanam',
+    titleTe: 'తిరుమల శ్రీవారి పవిత్రోత్సవాలు - అంకురార్పణ',
     startDate: '2026-08-22',
     endDate: '2026-08-22',
     category: 'special-puja',
@@ -830,8 +904,8 @@ export const INITIAL_EVENTS = [
     time: '07:00 PM',
     crowdLevel: 'High',
     crowdBadge: 'Ankurarpanam',
-    description: 'Ankurarpanam ritual performed for the annual Srivari Pavitrotsavams at Tirumala.',
-    descriptionTe: 'ఆగస్టు 22న తిరుమల శ్రీవారి పవిత్రోత్సవాలకు సాయంత్రం శాస్త్రోక్తంగా అంకురార్పణ.'
+    description: 'Ankurarpanam performed on Saturday evening marking the sacred prelude to the annual Srivari Pavithrotsavams in Sravanamasam (Aug 22 to 25).',
+    descriptionTe: 'శ్రావణమాసంలో తిరుమల శ్రీవారి ఆలయంలో ఆగస్టు 22 నుండి 25 వరకు జరిగే పవిత్రోత్సవాలకు శనివారం సాయంత్రం శాస్త్రోక్తంగా అంకురార్పణ.'
   },
 
   // --- August 23, 2026 ---
@@ -850,6 +924,42 @@ export const INITIAL_EVENTS = [
     crowdBadge: 'Sunday Ritual',
     description: 'Sacred Sunday morning Abhishekam to Sri Prasanna Anjaneya Swamy performed at 8:15 AM.',
     descriptionTe: 'శ్రీ ప్రసన్న ఆంజనేయ స్వామి వారికి ఉదయం 8.15 గంటలకు అభిషేకం.'
+  },
+  {
+    id: 'ttd-2026-08-23-tirumala-prathishta',
+    templeId: 'tirumala-main',
+    title: 'Srivari Pavithrotsavams - Pavithra Prathishta',
+    titleTe: 'తిరుమల శ్రీవారి పవిత్రోత్సవాలు - పవిత్ర ప్రతిష్ఠ',
+    startDate: '2026-08-23',
+    endDate: '2026-08-23',
+    category: 'special-puja',
+    highlight: true,
+    isMajor: true,
+    location: 'Sampangi Prakaram, Tirumala Shrine',
+    time: '08:00 AM - 12:00 PM',
+    crowdLevel: 'High',
+    crowdBadge: 'Pavithra Prathishta',
+    description: 'Pavithra Prathishta performed on Day 2 of Srivari Pavithrotsavams at Tirumala.',
+    descriptionTe: 'తిరుమల శ్రీవారి ఆలయంలో పవిత్రోత్సవాల రెండవ రోజు పవిత్ర ప్రతిష్ఠ వైభవంగా నిర్వహణ.'
+  },
+
+  // --- August 24, 2026 ---
+  {
+    id: 'ttd-2026-08-24-tirumala-samarpana',
+    templeId: 'tirumala-main',
+    title: 'Srivari Pavithrotsavams - Pavithra Samarpana',
+    titleTe: 'తిరుమల శ్రీవారి పవిత్రోత్సవాలు - పవిత్ర సమర్పణ',
+    startDate: '2026-08-24',
+    endDate: '2026-08-24',
+    category: 'special-puja',
+    highlight: true,
+    isMajor: true,
+    location: 'Sampangi Prakaram, Tirumala Shrine',
+    time: '08:00 AM - 12:00 PM',
+    crowdLevel: 'High',
+    crowdBadge: 'Pavithra Samarpana',
+    description: 'Pavithra Samarpana ceremony on Day 3 of Srivari Pavithrotsavams where sacred silk garlands are offered to deities, vimanam, and altars.',
+    descriptionTe: 'శ్రీవారి పవిత్రోత్సవాల మూడవ రోజు శ్రీవారి మూలవిరాట్, ఉత్సవమూర్తులు మరియు విమాన వేంకటేశ్వరస్వామికి పవిత్ర మాలల సమర్పణ.'
   },
 
   // --- August 25, 2026 ---
@@ -872,19 +982,20 @@ export const INITIAL_EVENTS = [
     descriptionTe: 'ఆగష్ఠు 25న ఉత్తరాషాడ నక్షత్రం సందర్భంగా శ్రీపద్మావతి అమ్మవారు సాయంత్రం 6.45 గంటలకు గజ వాహనంపై భక్తులను కటాక్షిస్తారు.'
   },
   {
-    id: 'ttd-2026-08-25-tirumala',
+    id: 'ttd-2026-08-25-tirumala-poornahuthi',
     templeId: 'tirumala-main',
-    title: 'Conclusion of Annual Srivari Pavitrotsavams (Poornahuthi)',
-    titleTe: 'తిరుమల శ్రీవారి పవిత్రోత్సవాల సమాప్తి',
+    title: 'Srivari Pavithrotsavams - Poornahuthi (Conclusion)',
+    titleTe: 'తిరుమల శ్రీవారి పవిత్రోత్సవాలు - పూర్ణాహుతి (సమాప్తి)',
     startDate: '2026-08-25',
     endDate: '2026-08-25',
     category: 'special-puja',
     highlight: true,
+    isMajor: true,
     location: 'Sampangi Prakaram, Tirumala Shrine',
     time: '08:00 AM - 12:00 PM',
     crowdLevel: 'High',
     crowdBadge: 'Poornahuthi',
-    description: 'Grand conclusion of the annual Srivari Pavitrotsavams at Tirumala shrine with Mahapoornahuthi.',
+    description: 'Grand conclusion of the annual Srivari Pavithrotsavams at Tirumala shrine with Mahapoornahuthi.',
     descriptionTe: 'ఆగస్టు 25న తిరుమల శ్రీవారి పవిత్రోత్సవాలు మహాపూర్ణాహుతితో విజయవంతంగా సమాప్తి అవుతాయి.'
   },
 

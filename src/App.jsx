@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Header from './components/Header';
 import HeroBanner from './components/HeroBanner';
 import CalendarView from './components/CalendarView';
@@ -8,6 +8,7 @@ import CommunityFeedback from './components/CommunityFeedback';
 import EventDetailModal from './components/EventDetailModal';
 import AdminPortalModal from './components/AdminPortalModal';
 import ReferencesList from './components/ReferencesList';
+import UtsavamGlossary from './components/UtsavamGlossary';
 import { INITIAL_EVENTS } from './data/templeEvents';
 import { ShieldCheck, LogOut, Edit2, X, ExternalLink, MessageSquare, Plus, Cloud, Lock } from 'lucide-react';
 
@@ -140,6 +141,99 @@ export default function App() {
     }
   }, [feedbackList]);
 
+  // Notifications State
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    try {
+      return localStorage.getItem('tirumala_notifications_enabled') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const handleToggleNotifications = () => {
+    if (!notificationsEnabled) {
+      if ('Notification' in window) {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            setNotificationsEnabled(true);
+            localStorage.setItem('tirumala_notifications_enabled', 'true');
+            alert(lang === 'te' ? 'ఉత్సవ నోటిఫికేషన్లు ప్రారంభించబడ్డాయి!' : 'Utsavam Notifications enabled successfully!');
+          } else {
+            alert(lang === 'te' ? 'నోటిఫికేషన్ల అనుమతి నిరాకరించబడింది.' : 'Notification permission was not granted by browser.');
+          }
+        });
+      } else {
+        alert('Browser does not support notifications.');
+      }
+    } else {
+      setNotificationsEnabled(false);
+      localStorage.setItem('tirumala_notifications_enabled', 'false');
+    }
+  };
+
+  // TTD YouTube Live Stream State
+  const [ttdLiveUrl, setTtdLiveUrl] = useState(() => {
+    try {
+      return localStorage.getItem('tirumala_ttd_live_url') || '';
+    } catch {
+      return '';
+    }
+  });
+  const [isLiveStreamModalOpen, setIsLiveStreamModalOpen] = useState(false);
+
+  const handleSaveTtdLiveUrl = (newUrl) => {
+    setTtdLiveUrl(newUrl);
+    try {
+      localStorage.setItem('tirumala_ttd_live_url', newUrl);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Admin Custom Glossary Edits State
+  const [customGlossaryEdits, setCustomGlossaryEdits] = useState(() => {
+    try {
+      const stored = localStorage.getItem('tirumala_custom_glossary_edits');
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const handleSaveGlossaryEdit = (termId, updatedData) => {
+    setCustomGlossaryEdits(prev => {
+      const next = { ...prev, [termId]: updatedData };
+      try {
+        localStorage.setItem('tirumala_custom_glossary_edits', JSON.stringify(next));
+      } catch (e) {
+        console.error(e);
+      }
+      return next;
+    });
+  };
+
+  // Direct Glossary Navigation State
+  const [targetGlossaryTermId, setTargetGlossaryTermId] = useState(null);
+  const [targetGlossaryTermToEdit, setTargetGlossaryTermToEdit] = useState(null);
+
+  const handleNavigateToGlossary = (termId) => {
+    setTargetGlossaryTermId(termId);
+    setActiveTab('glossary');
+  };
+
+  const handleOpenAdminEditTerm = (term) => {
+    setTargetGlossaryTermToEdit(term);
+    setAdminModalMode('edit-glossary');
+  };
+
+  // Detect Today's Active Event for Rolling Ticker
+  const todayStr = new Date().toISOString().split('T')[0];
+  const safeEventsList = Array.isArray(eventsList) ? eventsList : INITIAL_EVENTS;
+  const todayEvent = useMemo(() => {
+    if (!Array.isArray(safeEventsList)) return null;
+    return safeEventsList.find(e => e && typeof e === 'object' && e.startDate && e.endDate && e.startDate <= todayStr && e.endDate >= todayStr);
+  }, [safeEventsList, todayStr]);
+
   // Feedback Handlers
   const handleAddFeedback = (newFeedback) => {
     setFeedbackList(prev => [newFeedback, ...prev]);
@@ -183,8 +277,6 @@ export default function App() {
   };
 
   const safeFeedbackList = Array.isArray(feedbackList) ? feedbackList : [];
-  const safeEventsList = Array.isArray(eventsList) ? eventsList : INITIAL_EVENTS;
-
   const newFeedbackCount = safeFeedbackList.filter(f => f.status === 'New').length;
 
   return (
@@ -261,7 +353,38 @@ export default function App() {
           }
         }}
         onOpenLogoModal={() => setIsLogoModalOpen(true)}
+        notificationsEnabled={notificationsEnabled}
+        onToggleNotifications={handleToggleNotifications}
+        ttdLiveUrl={ttdLiveUrl}
+        onOpenLiveStream={() => setIsLiveStreamModalOpen(true)}
       />
+
+      {/* ROLLING TICKER BANNER FOR TODAY'S HAPPENING EVENT */}
+      {todayEvent && (
+        <div 
+          onClick={() => setSelectedEventModal(todayEvent)}
+          className="bg-gradient-to-r from-red-900 via-[#E65100] to-[#141923] text-white py-2 px-4 cursor-pointer border-b border-[#FFD700]/50 shadow-md overflow-hidden relative group"
+          title="Click to view full event card details"
+        >
+          <div className="container flex items-center justify-between gap-3 text-xs sm:text-sm font-extrabold">
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-400 animate-ping"></span>
+              <span className="px-2 py-0.5 rounded bg-red-600 text-white uppercase text-[10px] tracking-wider">
+                {lang === 'en' ? 'Happening Today' : 'ఈ రోజు జరుగుతోంది'}
+              </span>
+            </div>
+
+            <div className="truncate flex-grow text-center font-serif text-[#FFD700] tracking-wide">
+              {lang === 'en' ? todayEvent.title : (todayEvent.titleTe || todayEvent.title)}
+              {todayEvent.vahanam && ` — 🐎 ${todayEvent.vahanam}`}
+            </div>
+
+            <div className="shrink-0 text-[11px] font-sans underline text-[#FFD700] group-hover:scale-105 transition-transform">
+              {lang === 'en' ? 'View Details ➔' : 'వివరాలు చూడండి ➔'}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hero Banner (Shown on Overview tab) */}
       {activeTab === 'overview' && (
@@ -306,32 +429,15 @@ export default function App() {
           />
         )}
 
-        {/* LOCKED REFERENCES SECTION */}
-        {activeTab === 'references' && (
-          <div className="glass-card p-10 sm:p-14 text-center max-w-2xl mx-auto space-y-4 border-2 border-[#D4AF37]/40 my-8 shadow-2xl rounded-3xl bg-[#141923]/90">
-            <div className="w-16 h-16 rounded-full bg-[#0B0E14] border-2 border-[#FFD700] flex items-center justify-center mx-auto text-[#FFD700] shadow-lg animate-pulse">
-              <Lock className="w-8 h-8 text-[#FFD700]" />
-            </div>
-            <span className="inline-block px-3.5 py-1 rounded-full bg-[#D4AF37]/20 border border-[#D4AF37]/50 text-[#FFD700] text-xs font-extrabold uppercase tracking-wider">
-              🔒 Locked — Feature Under Development
-            </span>
-            <h3 className="font-serif text-2xl sm:text-3xl font-extrabold text-white gold-gradient-text">
-              {lang === 'en' ? 'Sacred Literature — Coming Soon' : 'పవిత్ర గ్రంథములు — త్వరలో లభిస్తుంది'}
-            </h3>
-            <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed max-w-md mx-auto">
-              {lang === 'en'
-                ? 'Official TTD source documents, ancient Sanskrit manuscripts, and festival literature are currently being digitized.'
-                : 'అధికారిక టిటిడి ఆధార పత్రాలు మరియు సంస్కృత గ్రంథాల డిజిటలైజేషన్ పురోగతిలో ఉంది.'}
-            </p>
-            <div className="pt-2">
-              <button
-                onClick={() => setActiveTab('calendar-page')}
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#FF5722] to-[#FFD700] text-black font-extrabold text-xs shadow-lg hover:brightness-110 active:scale-95 transition-all"
-              >
-                {lang === 'en' ? '📅 Back to Calendar' : '📅 క్యాలెండర్‌కు తిరిగి వెళ్ళండి'}
-              </button>
-            </div>
-          </div>
+        {/* UTSAVAM & FESTIVAL GLOSSARY SECTION */}
+        {activeTab === 'glossary' && (
+          <UtsavamGlossary
+            lang={lang}
+            targetTermId={targetGlossaryTermId}
+            customGlossaryEdits={customGlossaryEdits}
+            isAdminLoggedIn={isAdminLoggedIn}
+            onOpenAdminEditTerm={handleOpenAdminEditTerm}
+          />
         )}
 
         {/* DAILY SEVAS & ANNA PRASADAM SECTION */}
@@ -358,10 +464,11 @@ export default function App() {
           lang={lang}
           isAdminLoggedIn={isAdminLoggedIn}
           onEditEvent={handleOpenEditModalForEvent}
+          onNavigateToGlossary={handleNavigateToGlossary}
         />
       )}
 
-      {/* Admin Quick Action Modal (Login, Add Event, Edit Event, Feedback Inbox) */}
+      {/* Admin Quick Action Modal */}
       {adminModalMode && (
         <AdminPortalModal
           mode={adminModalMode}
@@ -377,7 +484,58 @@ export default function App() {
           feedbackList={safeFeedbackList}
           onUpdateFeedback={handleUpdateFeedback}
           onDeleteFeedback={handleDeleteFeedback}
+          targetGlossaryTerm={targetGlossaryTermToEdit}
+          onSaveGlossaryEdit={handleSaveGlossaryEdit}
+          ttdLiveUrl={ttdLiveUrl}
+          onSaveTtdLiveUrl={handleSaveTtdLiveUrl}
         />
+      )}
+
+      {/* TTD YOUTUBE LIVE STREAM EMBEDDED MODAL */}
+      {isLiveStreamModalOpen && ttdLiveUrl && (
+        <div className="modal-overlay z-[99999]" onClick={() => setIsLiveStreamModalOpen(false)}>
+          <div 
+            className="glass-card p-4 border-2 border-red-500 max-w-3xl w-full bg-[#0B0E14] text-center rounded-2xl relative space-y-3 shadow-2xl animate-scale-up" 
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-white/10 pb-2">
+              <span className="font-serif font-bold text-red-500 text-sm sm:text-base flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
+                <span>🔴 TTD Daily YouTube Live Stream</span>
+              </span>
+              <button 
+                onClick={() => setIsLiveStreamModalOpen(false)} 
+                className="p-1 rounded-full bg-[#141923] text-white hover:text-[#FFD700] text-xs border border-white/20"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black border border-white/20">
+              <iframe
+                className="w-full h-full"
+                src={
+                  ttdLiveUrl.includes('embed/')
+                    ? ttdLiveUrl
+                    : `https://www.youtube.com/embed/${
+                        ttdLiveUrl.includes('v=')
+                          ? ttdLiveUrl.split('v=')[1].split('&')[0]
+                          : ttdLiveUrl.includes('youtu.be/')
+                          ? ttdLiveUrl.split('youtu.be/')[1].split('?')[0]
+                          : ttdLiveUrl
+                      }?autoplay=1`
+                }
+                title="TTD Daily Live Stream"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
+
+            <div className="text-xs text-[#94A3B8] font-mono">
+              Live broadcast provided via Tirumala Tirupati Devasthanams (TTD)
+            </div>
+          </div>
+        </div>
       )}
 
       {/* LOGO FULL-SIZE LIGHTBOX MODAL POPUP */}

@@ -1,24 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { TEMPLES } from '../data/templeEvents';
-import { getEventStatus, openGoogleCalendar, downloadIcsCalendarFile, shareToWhatsApp, normalizeImageUrl } from '../utils/eventStatus';
-import { X, Calendar, MapPin, Tag, Share2, Edit, Download, ChevronLeft, ChevronRight, Maximize2, Camera, ExternalLink } from 'lucide-react';
+import { UTSAVA_GLOSSARY_TERMS } from '../data/utsavaGlossary';
+import { getEventStatus, openGoogleCalendar, openAppleCalendar, shareToPlatform, normalizeImageUrl } from '../utils/eventStatus';
+import { X, Calendar, MapPin, Tag, Share2, Edit, ChevronLeft, ChevronRight, BookOpen, ExternalLink, Copy, Check } from 'lucide-react';
 
 export default function EventDetailModal({
   event,
   onClose,
   lang,
   isAdminLoggedIn,
-  onEditEvent
+  onEditEvent,
+  onNavigateToGlossary
 }) {
   if (!event) return null;
 
   const temple = TEMPLES.find(t => t.id === event.templeId);
   const statusObj = getEventStatus(event.startDate, event.endDate);
 
+  // Share dropdown menu state
+  const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
   // Gallery & Lightbox State
   const [activeImgIndex, setActiveImgIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  // Detect matching glossary terms for this event (Sorted Ascending)
+  const matchingGlossaryTerms = useMemo(() => {
+    if (!event) return [];
+    const fullText = `${event.title || ''} ${event.titleTe || ''} ${event.description || ''} ${event.descriptionTe || ''} ${event.vahanam || ''}`.toLowerCase();
+    
+    if (!Array.isArray(UTSAVA_GLOSSARY_TERMS)) return [];
+
+    const matched = UTSAVA_GLOSSARY_TERMS.filter(gTerm => {
+      if (!gTerm) return false;
+      const matchTermEn = (gTerm.term || '').toLowerCase();
+      const matchTermTe = (gTerm.termTe || '').toLowerCase();
+      const matchesKeyword = Array.isArray(gTerm.relatedEventKeywords) && gTerm.relatedEventKeywords.some(kw => kw && fullText.includes(String(kw).toLowerCase()));
+      return (matchTermEn && fullText.includes(matchTermEn)) || (matchTermTe && fullText.includes(matchTermTe)) || matchesKeyword;
+    });
+
+    return matched.sort((a, b) => {
+      const nameA = (lang === 'en' ? a.term : a.termTe) || '';
+      const nameB = (lang === 'en' ? b.term : b.termTe) || '';
+      return nameA.localeCompare(nameB, lang === 'te' ? 'te' : 'en');
+    });
+  }, [event, lang]);
 
   // Robust Defensive Images List Normalization
   const allImages = [];
@@ -65,6 +93,15 @@ export default function EventDetailModal({
   const handleLightboxNext = (e) => {
     e.stopPropagation();
     setLightboxIndex(prev => (prev === allImages.length - 1 ? 0 : prev + 1));
+  };
+
+  const handleShareClick = (platform) => {
+    if (platform === 'copy') {
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    }
+    shareToPlatform(platform, event, lang);
+    setIsShareMenuOpen(false);
   };
 
   return (
@@ -219,40 +256,154 @@ export default function EventDetailModal({
             </div>
           )}
 
-          {/* Action Buttons: Google Calendar, .ics Download, and 1-Click WhatsApp Share */}
+          {/* CONTEXTUAL UTSAVAM TERMS EXPLAINED (Clicking navigates directly to Glossary focused on that term) */}
+          {matchingGlossaryTerms.length > 0 && (
+            <div className="p-4 rounded-xl bg-gradient-to-r from-[#141923] to-[#1A1500] border border-[#FFD700]/40 space-y-2.5">
+              <div className="flex items-center justify-between gap-2 text-xs font-extrabold text-[#FFD700] uppercase tracking-wider">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-[#FFD700]" />
+                  <span>{lang === 'en' ? 'Utsavam Terms & Meanings' : 'ఈ ఉత్సవంలో కనిపించే పవిత్ర పదాలు'}</span>
+                </div>
+                <span className="text-[10px] text-[#94A3B8] font-normal lowercase">(click term to read full glossary)</span>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {matchingGlossaryTerms.map(term => (
+                  <button
+                    key={term.id}
+                    onClick={() => {
+                      onClose();
+                      if (onNavigateToGlossary) {
+                        onNavigateToGlossary(term.id);
+                      }
+                    }}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-black/80 hover:bg-[#FFD700] text-[#FFD700] hover:text-black border border-[#D4AF37]/50 transition-all flex items-center gap-1.5 shadow-sm group/badge"
+                    title={`Click to read complete glossary entry for ${term.term}`}
+                  >
+                    <span>📖 {lang === 'en' ? term.term : term.termTe}</span>
+                    <ExternalLink className="w-3 h-3 group-hover/badge:scale-110" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons: Google Calendar, Apple Calendar (100% Crisp Visible Text), and Official Social Logos Share */}
           <div className="pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-2.5">
             
             <div className="flex flex-wrap items-center gap-2">
-              {/* 1-CLICK GOOGLE CALENDAR BUTTON */}
+              {/* GOOGLE CALENDAR BUTTON */}
               <button
                 onClick={() => openGoogleCalendar(event)}
-                className="px-3.5 py-2 rounded-xl bg-[#4285F4] hover:bg-[#3367D6] text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-all"
-                title="Add directly to Google Calendar"
+                className="px-3.5 py-2 rounded-xl bg-[#4285F4] hover:bg-[#3367D6] text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer"
+                title="Add to Google Calendar"
               >
                 <Calendar className="w-4 h-4 text-white" />
-                <span>Google Calendar</span>
+                <span className="text-white font-extrabold" style={{ color: '#FFFFFF' }}>Google Calendar</span>
               </button>
 
-              {/* .ICS DOWNLOAD BUTTON */}
+              {/* APPLE CALENDAR BUTTON (HIGH CONTRAST GOLD & BLACK) */}
               <button
-                onClick={() => downloadIcsCalendarFile(event)}
-                className="px-3.5 py-2 rounded-xl bg-[#141923] border border-[#D4AF37]/50 text-[#FFD700] hover:bg-[#D4AF37]/20 font-bold text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-all"
-                title="Download .ics file for Outlook & Apple Calendar"
+                onClick={() => openAppleCalendar(event)}
+                className="px-3.5 py-2 rounded-xl bg-black border-2 border-[#FFD700] hover:bg-slate-900 text-[#FFD700] font-extrabold text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer"
+                title="Direct to Apple Calendar"
               >
-                <Download className="w-4 h-4 text-[#FFD700]" />
-                <span>.ics File</span>
+                <span className="text-base">🍏</span>
+                <span className="font-extrabold text-[#FFD700]">Apple Calendar</span>
               </button>
             </div>
 
-            {/* 1-CLICK WHATSAPP SHARE BUTTON (Mobile & Computer) */}
-            <button
-              onClick={() => shareToWhatsApp(event, lang)}
-              className="px-4 py-2 rounded-xl bg-[#25D366] hover:bg-[#1EBE5B] text-black font-extrabold text-xs flex items-center gap-2 shadow-lg active:scale-95 transition-all"
-              title="Share event directly to WhatsApp"
-            >
-              <Share2 className="w-4 h-4 text-black" />
-              <span>{lang === 'en' ? 'Share to WhatsApp' : 'WhatsApp ద్వారా పంచుకోండి'}</span>
-            </button>
+            {/* EXPANDED SOCIAL SHARE DROPDOWN MENU WITH REAL OFFICIAL BRAND LOGOS */}
+            <div className="relative">
+              <button
+                onClick={() => setIsShareMenuOpen(!isShareMenuOpen)}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#FF5722] to-[#FFD700] text-black font-extrabold text-xs flex items-center gap-2 shadow-lg active:scale-95 transition-all cursor-pointer"
+              >
+                <Share2 className="w-4 h-4 text-black" />
+                <span>{lang === 'en' ? 'Share Event' : 'పంచుకోండి'}</span>
+              </button>
+
+              {isShareMenuOpen && (
+                <div className="absolute right-0 bottom-12 w-52 bg-[#0B0E14] border-2 border-[#FFD700] rounded-xl shadow-2xl p-2 space-y-1 z-50 animate-scale-up">
+                  
+                  {/* WHATSAPP */}
+                  <button
+                    onClick={() => handleShareClick('whatsapp')}
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs font-bold text-white flex items-center gap-2.5 transition-colors"
+                  >
+                    <svg className="w-4 h-4 text-[#25D366] shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-1.149 4.194 4.306-1.129z"/>
+                    </svg>
+                    <span style={{ color: '#25D366' }}>WhatsApp</span>
+                  </button>
+
+                  {/* TWITTER / X */}
+                  <button
+                    onClick={() => handleShareClick('x')}
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs font-bold text-white flex items-center gap-2.5 transition-colors"
+                  >
+                    <svg className="w-4 h-4 text-white shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                    <span style={{ color: '#FFFFFF' }}>Twitter / X</span>
+                  </button>
+
+                  {/* FACEBOOK */}
+                  <button
+                    onClick={() => handleShareClick('facebook')}
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs font-bold text-white flex items-center gap-2.5 transition-colors"
+                  >
+                    <svg className="w-4 h-4 text-[#1877F2] shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                    <span style={{ color: '#1877F2' }}>Facebook</span>
+                  </button>
+
+                  {/* REDDIT */}
+                  <button
+                    onClick={() => handleShareClick('reddit')}
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs font-bold text-white flex items-center gap-2.5 transition-colors"
+                  >
+                    <svg className="w-4 h-4 text-[#FF4500] shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.196-.491.956 0 1.733.777 1.733 1.734 0 .658-.363 1.222-.898 1.516.02.179.034.363.034.55 0 2.8-3.32 5.07-7.414 5.07-4.095 0-7.416-2.27-7.416-5.07 0-.18.013-.362.033-.54-.53-.294-.89-.855-.89-1.515 0-.957.777-1.734 1.734-1.734.469 0 .89.182 1.198.49 1.193-.855 2.846-1.417 4.667-1.489l.926-4.343 3.32.697a1.246 1.246 0 0 1 1.252-1.144z"/>
+                    </svg>
+                    <span style={{ color: '#FF4500' }}>Reddit</span>
+                  </button>
+
+                  {/* INSTAGRAM */}
+                  <button
+                    onClick={() => handleShareClick('instagram')}
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs font-bold text-white flex items-center gap-2.5 transition-colors"
+                  >
+                    <svg className="w-4 h-4 text-[#E4405F] shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                    </svg>
+                    <span style={{ color: '#E4405F' }}>Instagram</span>
+                  </button>
+
+                  {/* THREADS */}
+                  <button
+                    onClick={() => handleShareClick('threads')}
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs font-bold text-white flex items-center gap-2.5 transition-colors"
+                  >
+                    <svg className="w-4 h-4 text-[#A855F7] shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12.186 24c-3.18 0-5.83-1.026-7.876-3.048C2.264 18.932 1.25 15.932 1.25 12.05c0-3.896 1.014-6.9 3.02-8.927C6.316 1.1 8.966.074 12.146.074c3.155 0 5.805 1.026 7.876 3.049C22.068 5.15 23.082 8.15 23.082 12.03c0 3.882-1.014 6.887-3.02 8.914C18.01 22.974 15.36 24 12.186 24zm-.04-2.18c2.6 0 4.708-.8 6.26-2.378 1.552-1.577 2.328-3.953 2.328-7.127 0-3.175-.776-5.55-2.328-7.128-1.552-1.577-3.66-2.377-6.26-2.377-2.6 0-4.708.8-6.26 2.377C4.334 6.765 3.558 9.14 3.558 12.315c0 3.174.776 5.55 2.328 7.127 1.552 1.578 3.66 2.378 6.26 2.378z"/>
+                    </svg>
+                    <span style={{ color: '#A855F7' }}>Threads</span>
+                  </button>
+
+                  {/* COPY LINK & TEXT */}
+                  <button
+                    onClick={() => handleShareClick('copy')}
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs font-bold text-[#FFD700] flex items-center gap-2.5 border-t border-white/10 pt-2 transition-colors"
+                  >
+                    {copiedLink ? <Check className="w-4 h-4 text-green-400 shrink-0" /> : <Copy className="w-4 h-4 text-[#FFD700] shrink-0" />}
+                    <span style={{ color: '#FFD700' }}>{copiedLink ? 'Copied!' : 'Copy Link & Text'}</span>
+                  </button>
+
+                </div>
+              )}
+            </div>
 
           </div>
           </div>
@@ -264,20 +415,6 @@ export default function EventDetailModal({
         <div 
           className="fixed inset-0 z-[999999] bg-black/95 backdrop-blur-xl flex flex-col justify-between p-3 sm:p-6"
           onClick={() => setIsLightboxOpen(false)}
-          onTouchStart={(e) => {
-            if (e.touches && e.touches.length === 1) {
-              window._lbTouchX = e.touches[0].clientX;
-            }
-          }}
-          onTouchEnd={(e) => {
-            if (e.changedTouches && e.changedTouches.length === 1 && window._lbTouchX) {
-              const diffX = window._lbTouchX - e.changedTouches[0].clientX;
-              if (Math.abs(diffX) > 40) {
-                if (diffX > 0) handleLightboxNext(e);
-                else handleLightboxPrev(e);
-              }
-            }
-          }}
         >
           {/* Lightbox Top Header */}
           <div className="flex items-center justify-between z-10 w-full" onClick={(e) => e.stopPropagation()}>

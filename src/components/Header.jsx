@@ -10,7 +10,11 @@ export default function Header({
   setThemeMode, 
   onOpenAdmin,
   onOpenLogoModal,
-  isAdminLoggedIn
+  isAdminLoggedIn,
+  notificationsEnabled,
+  onToggleNotifications,
+  ttdLiveUrl,
+  onOpenLiveStream
 }) {
   // Live IST 24-Hour Clock State
   const [istTime, setIstTime] = useState('');
@@ -124,6 +128,33 @@ export default function Header({
               </button>
             )}
 
+            {/* TTD YOUTUBE LIVE STREAM BUTTON (Shown only if Admin set active link) */}
+            {ttdLiveUrl && (
+              <button
+                onClick={onOpenLiveStream}
+                className="px-2 py-1 rounded-lg bg-red-600 hover:bg-red-700 text-white text-[10px] sm:text-[11px] font-extrabold flex items-center gap-1 shadow-lg animate-pulse"
+                title="Watch TTD Daily YouTube Live Stream"
+              >
+                <span>🔴 <span className="hidden sm:inline">TTD Live</span></span>
+              </button>
+            )}
+
+            {/* NOTIFICATIONS TOGGLE BUTTON */}
+            <button
+              onClick={onToggleNotifications}
+              className={`p-1.5 sm:px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors border ${
+                notificationsEnabled
+                  ? 'bg-amber-500/20 border-[#FFD700] text-[#FFD700]'
+                  : 'bg-[#141923] border-[#D4AF37]/40 text-[#94A3B8] hover:text-[#FFD700]'
+              }`}
+              title={notificationsEnabled ? 'Utsavam Notifications Enabled' : 'Enable Event & Utsavam Notifications'}
+            >
+              <span>{notificationsEnabled ? '🔔' : '🔕'}</span>
+              <span className="hidden sm:inline text-[11px]">
+                {notificationsEnabled ? 'Alerts On' : 'Alerts'}
+              </span>
+            </button>
+
             {/* Dark / Light Mode Toggle */}
             <button
               onClick={() => setThemeMode(themeMode === 'dark' ? 'light' : 'dark')}
@@ -178,16 +209,15 @@ export default function Header({
           </button>
 
           <button
-            onClick={() => setActiveTab('references')}
+            onClick={() => setActiveTab('glossary')}
             className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-1.5 shrink-0 transition-all ${
-              activeTab === 'references'
-                ? 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-[#0B0E14] shadow-md'
+              activeTab === 'glossary'
+                ? 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-[#0B0E14] shadow-md font-extrabold'
                 : 'text-[#94A3B8] hover:text-[#FFD700] hover:bg-[#141923]'
             }`}
           >
-            <BookOpen className="w-4 h-4 text-[#94A3B8]" />
-            <span>{lang === 'en' ? 'References' : 'గ్రంథాలు'}</span>
-            <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-[#FFD700] border border-[#FFD700]/30 font-semibold">🔒 Soon</span>
+            <BookOpen className="w-4 h-4 text-[#FFD700]" />
+            <span>{lang === 'en' ? 'Glossary / Meanings' : 'నిఘంటువు / పదాల అర్థాలు'}</span>
           </button>
 
           <button

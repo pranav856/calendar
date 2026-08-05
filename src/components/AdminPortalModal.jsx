@@ -5,7 +5,7 @@ import { getCloudConfig, saveCloudConfig, pushEventsToCloud, getLastSyncTime } f
 import { normalizeImageUrl } from '../utils/eventStatus';
 
 export default function AdminPortalModal({
-  mode, // 'login' | 'edit-event' | 'feedback-inbox'
+  mode, // 'login' | 'edit-event' | 'feedback-inbox' | 'edit-glossary' | 'youtube-live'
   onClose,
   lang,
   events,
@@ -17,7 +17,11 @@ export default function AdminPortalModal({
   targetEvent,
   feedbackList,
   onUpdateFeedback,
-  onDeleteFeedback
+  onDeleteFeedback,
+  targetGlossaryTerm,
+  onSaveGlossaryEdit,
+  ttdLiveUrl,
+  onSaveTtdLiveUrl
 }) {
   // Admin Navigation State
   const [activeAdminTab, setActiveAdminTab] = useState(mode || 'feedback-inbox');
@@ -25,6 +29,40 @@ export default function AdminPortalModal({
   useEffect(() => {
     if (mode) setActiveAdminTab(mode);
   }, [mode]);
+
+  // YouTube Live Form State
+  const [youtubeInput, setYoutubeInput] = useState(ttdLiveUrl || '');
+
+  // Glossary Form State
+  const [glossaryForm, setGlossaryForm] = useState({
+    id: targetGlossaryTerm?.id || '',
+    term: targetGlossaryTerm?.term || '',
+    termTe: targetGlossaryTerm?.termTe || '',
+    shortDesc: targetGlossaryTerm?.shortDesc || '',
+    shortDescTe: targetGlossaryTerm?.shortDescTe || '',
+    detailedMeaning: targetGlossaryTerm?.detailedMeaning || '',
+    detailedMeaningTe: targetGlossaryTerm?.detailedMeaningTe || '',
+    images: targetGlossaryTerm?.images && Array.isArray(targetGlossaryTerm.images)
+      ? targetGlossaryTerm.images.map(img => typeof img === 'string' ? { url: img, caption: '' } : { url: img.url || '', caption: img.caption || '' })
+      : []
+  });
+
+  useEffect(() => {
+    if (targetGlossaryTerm) {
+      setGlossaryForm({
+        id: targetGlossaryTerm.id || '',
+        term: targetGlossaryTerm.term || '',
+        termTe: targetGlossaryTerm.termTe || '',
+        shortDesc: targetGlossaryTerm.shortDesc || '',
+        shortDescTe: targetGlossaryTerm.shortDescTe || '',
+        detailedMeaning: targetGlossaryTerm.detailedMeaning || '',
+        detailedMeaningTe: targetGlossaryTerm.detailedMeaningTe || '',
+        images: targetGlossaryTerm.images && Array.isArray(targetGlossaryTerm.images)
+          ? targetGlossaryTerm.images.map(img => typeof img === 'string' ? { url: img, caption: '' } : { url: img.url || '', caption: img.caption || '' })
+          : []
+      });
+    }
+  }, [targetGlossaryTerm]);
 
   // Login Form State
   const [username, setUsername] = useState('');
@@ -733,6 +771,205 @@ CREATE POLICY "Allow public insert update" ON public.events FOR ALL USING (true)
                 </div>
               </div>
             </form>
+          </div>
+        )}
+
+        {/* EDIT GLOSSARY TERM TAB */}
+        {activeAdminTab === 'edit-glossary' && (
+          <div className="space-y-4 animate-fade-in">
+            <div className="p-4 rounded-xl bg-[#141923] border border-[#D4AF37]/40 space-y-3">
+              <h3 className="font-serif text-lg font-bold text-[#FFD700]">
+                📖 Admin Glossary Editor: {glossaryForm.term || 'Select / Edit Term'}
+              </h3>
+              <p className="text-xs text-[#94A3B8]">
+                Edit term meanings and add custom images with captions. Note: Images are shown only when added by Admin.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                <div>
+                  <label className="text-xs font-bold text-[#FFD700] block mb-1">Term (English):</label>
+                  <input
+                    type="text"
+                    value={glossaryForm.term}
+                    onChange={e => setGlossaryForm({ ...glossaryForm, term: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg bg-black border border-[#D4AF37]/50 text-white text-xs font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-[#FFD700] block mb-1">Term (Telugu):</label>
+                  <input
+                    type="text"
+                    value={glossaryForm.termTe}
+                    onChange={e => setGlossaryForm({ ...glossaryForm, termTe: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg bg-black border border-[#D4AF37]/50 text-white text-xs font-bold font-sans"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="text-xs font-bold text-[#FFD700] block mb-1">Short Description (English):</label>
+                  <textarea
+                    rows={2}
+                    value={glossaryForm.shortDesc}
+                    onChange={e => setGlossaryForm({ ...glossaryForm, shortDesc: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg bg-black border border-[#D4AF37]/50 text-white text-xs"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="text-xs font-bold text-[#FFD700] block mb-1">Short Description (Telugu):</label>
+                  <textarea
+                    rows={2}
+                    value={glossaryForm.shortDescTe}
+                    onChange={e => setGlossaryForm({ ...glossaryForm, shortDescTe: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg bg-black border border-[#D4AF37]/50 text-white text-xs font-sans"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="text-xs font-bold text-[#FFD700] block mb-1">Detailed History & Meaning (English):</label>
+                  <textarea
+                    rows={5}
+                    value={glossaryForm.detailedMeaning}
+                    onChange={e => setGlossaryForm({ ...glossaryForm, detailedMeaning: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg bg-black border border-[#D4AF37]/50 text-white text-xs"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="text-xs font-bold text-[#FFD700] block mb-1">Detailed History & Meaning (Telugu):</label>
+                  <textarea
+                    rows={5}
+                    value={glossaryForm.detailedMeaningTe}
+                    onChange={e => setGlossaryForm({ ...glossaryForm, detailedMeaningTe: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg bg-black border border-[#D4AF37]/50 text-white text-xs font-sans"
+                  />
+                </div>
+
+                {/* CUSTOM ADMIN IMAGE GALLERY MANAGEMENT */}
+                <div className="md:col-span-2 space-y-2 pt-2 border-t border-white/10">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-[#FFD700]">📷 Admin Custom Images Gallery (Optional):</label>
+                    <button
+                      type="button"
+                      onClick={() => setGlossaryForm({ ...glossaryForm, images: [...glossaryForm.images, { url: '', caption: '' }] })}
+                      className="px-2 py-1 rounded bg-[#FF5722] text-white text-[10px] font-extrabold flex items-center gap-1"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>Add Image</span>
+                    </button>
+                  </div>
+
+                  {glossaryForm.images.map((img, idx) => (
+                    <div key={idx} className="flex items-center gap-2 bg-black/60 p-2 rounded-lg border border-white/10">
+                      <input
+                        type="text"
+                        placeholder="Image URL (e.g. https://...)"
+                        value={img.url}
+                        onChange={e => {
+                          const updated = [...glossaryForm.images];
+                          updated[idx].url = e.target.value;
+                          setGlossaryForm({ ...glossaryForm, images: updated });
+                        }}
+                        className="flex-grow px-2 py-1 bg-[#141923] border border-white/20 text-white text-xs rounded"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Image Caption"
+                        value={img.caption}
+                        onChange={e => {
+                          const updated = [...glossaryForm.images];
+                          updated[idx].caption = e.target.value;
+                          setGlossaryForm({ ...glossaryForm, images: updated });
+                        }}
+                        className="w-40 px-2 py-1 bg-[#141923] border border-white/20 text-white text-xs rounded"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = glossaryForm.images.filter((_, i) => i !== idx);
+                          setGlossaryForm({ ...glossaryForm, images: updated });
+                        }}
+                        className="p-1 rounded bg-red-600/80 text-white hover:bg-red-700 text-xs"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="md:col-span-2 pt-3 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-4 py-2 rounded-xl bg-[#141923] text-white text-xs font-bold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onSaveGlossaryEdit) {
+                        onSaveGlossaryEdit(glossaryForm.id, glossaryForm);
+                      }
+                      onClose();
+                    }}
+                    className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#FF5722] to-[#FFD700] text-black font-extrabold text-xs shadow-lg"
+                  >
+                    Save Glossary Term
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* YOUTUBE LIVE STREAM CONFIGURATION TAB */}
+        {activeAdminTab === 'youtube-live' && (
+          <div className="space-y-4 animate-fade-in">
+            <div className="p-4 rounded-xl bg-[#141923] border border-[#D4AF37]/40 space-y-3">
+              <h3 className="font-serif text-lg font-bold text-[#FFD700]">
+                🔴 TTD Daily YouTube Live Stream Embed Settings
+              </h3>
+              <p className="text-xs text-[#94A3B8]">
+                Paste the TTD YouTube Live Stream video URL or Embed ID below. When set, a live stream banner/player will be displayed for all devotees!
+              </p>
+
+              <div>
+                <label className="text-xs font-bold text-[#FFD700] block mb-1">YouTube Live Video URL or Embed ID:</label>
+                <input
+                  type="text"
+                  placeholder="e.g. https://www.youtube.com/watch?v=liveID or dQw4w9WgXcQ"
+                  value={youtubeInput}
+                  onChange={e => setYoutubeInput(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-black border border-[#D4AF37]/50 text-white text-xs font-bold"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onSaveTtdLiveUrl) onSaveTtdLiveUrl('');
+                    setYoutubeInput('');
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-red-900/80 border border-red-500 text-white text-xs font-bold"
+                >
+                  Clear Live Stream
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onSaveTtdLiveUrl) onSaveTtdLiveUrl(youtubeInput);
+                    onClose();
+                  }}
+                  className="px-5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow"
+                >
+                  Save Live Stream
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
