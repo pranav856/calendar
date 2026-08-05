@@ -898,39 +898,97 @@ CREATE POLICY "Allow public insert update" ON public.events FOR ALL USING (true)
                   </div>
 
                   {glossaryForm.images.map((img, idx) => (
-                    <div key={idx} className="flex items-center gap-2 bg-black/60 p-2 rounded-lg border border-white/10">
-                      <input
-                        type="text"
-                        placeholder="Image URL (e.g. https://...)"
-                        value={img.url}
-                        onChange={e => {
-                          const updated = [...glossaryForm.images];
-                          updated[idx].url = e.target.value;
-                          setGlossaryForm({ ...glossaryForm, images: updated });
-                        }}
-                        className="flex-grow px-2 py-1 bg-[#141923] border border-white/20 text-white text-xs rounded"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Image Caption"
-                        value={img.caption}
-                        onChange={e => {
-                          const updated = [...glossaryForm.images];
-                          updated[idx].caption = e.target.value;
-                          setGlossaryForm({ ...glossaryForm, images: updated });
-                        }}
-                        className="w-40 px-2 py-1 bg-[#141923] border border-white/20 text-white text-xs rounded"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updated = glossaryForm.images.filter((_, i) => i !== idx);
-                          setGlossaryForm({ ...glossaryForm, images: updated });
-                        }}
-                        className="p-1 rounded bg-red-600/80 text-white hover:bg-red-700 text-xs"
-                      >
-                        ✕
-                      </button>
+                    <div key={idx} className="p-2.5 rounded-lg bg-[#0B0E14] border border-white/10 space-y-2 relative group">
+                      <div className="flex items-center justify-between text-[11px] font-bold text-white/80">
+                        <span>Glossary Photo #{idx + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = glossaryForm.images.filter((_, i) => i !== idx);
+                            setGlossaryForm({ ...glossaryForm, images: updated });
+                          }}
+                          className="text-red-400 hover:text-red-300 p-1 flex items-center gap-1 bg-red-950/60 border border-red-500/40 px-2 py-0.5 rounded"
+                          title="Remove photo"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                          <span className="text-[10px]">Remove Photo</span>
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="text-[10px] font-bold text-[#FFD700]">Image URL *</label>
+                            <label className="cursor-pointer text-[10px] font-extrabold text-[#FFD700] hover:text-white bg-[#FF5722]/30 hover:bg-[#FF5722]/60 border border-[#FF5722]/60 px-2 py-0.5 rounded flex items-center gap-1 transition-colors shadow">
+                              <Upload className="w-3 h-3 text-[#FFD700]" />
+                              <span>📁 Upload from PC</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files && e.target.files[0];
+                                  if (file) {
+                                    if (file.size > 8 * 1024 * 1024) {
+                                      alert('File is too large (max 8MB). Please select a smaller photo.');
+                                      return;
+                                    }
+                                    const reader = new FileReader();
+                                    reader.onload = (ev) => {
+                                      const updated = [...glossaryForm.images];
+                                      updated[idx].url = ev.target.result;
+                                      setGlossaryForm({ ...glossaryForm, images: updated });
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                }}
+                              />
+                            </label>
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="https://... or click Upload from PC"
+                            value={img.url}
+                            onChange={e => {
+                              const updated = [...glossaryForm.images];
+                              updated[idx].url = e.target.value;
+                              setGlossaryForm({ ...glossaryForm, images: updated });
+                            }}
+                            className="w-full px-2 py-1 bg-[#141923] border border-white/20 text-white text-xs font-mono rounded"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-bold text-[#FFD700] block mb-1">Caption / Title</label>
+                          <input
+                            type="text"
+                            placeholder="Image Caption"
+                            value={img.caption}
+                            onChange={e => {
+                              const updated = [...glossaryForm.images];
+                              updated[idx].caption = e.target.value;
+                              setGlossaryForm({ ...glossaryForm, images: updated });
+                            }}
+                            className="w-full px-2 py-1 bg-[#141923] border border-white/20 text-white text-xs rounded"
+                          />
+                        </div>
+                      </div>
+
+                      {img.url && (
+                        <div className="h-20 w-full rounded-xl overflow-hidden border border-[#D4AF37]/40 mt-1 bg-[#141923] relative">
+                          <img 
+                            src={img.url} 
+                            alt="Glossary Photo Preview" 
+                            className="w-full h-full object-cover" 
+                            onError={(e) => { 
+                              e.target.parentElement.innerHTML = '<div className="p-2 text-[10px] text-amber-400 font-mono text-center">⚠️ Invalid image URL. Ensure URL points directly to an image (.jpg, .png, .webp).</div>'; 
+                            }} 
+                          />
+                          <span className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/80 rounded text-[9px] text-[#FFD700] font-bold border border-[#FFD700]/30">
+                            Live Preview
+                          </span>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
