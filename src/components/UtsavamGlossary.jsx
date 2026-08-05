@@ -36,13 +36,14 @@ export default function UtsavamGlossary({
           shortDescTe: customEdit.shortDescTe || defaultTerm.shortDescTe || '',
           detailedMeaning: customEdit.detailedMeaning || defaultTerm.detailedMeaning || '',
           detailedMeaningTe: customEdit.detailedMeaningTe || defaultTerm.detailedMeaningTe || '',
-          // Custom images added ONLY by Admin (No default placeholder images)
-          images: Array.isArray(customEdit.images) ? customEdit.images.filter(img => img && img.url) : []
+          images: Array.isArray(customEdit.images) 
+            ? customEdit.images.filter(img => img && img.url) 
+            : (Array.isArray(defaultTerm.images) ? defaultTerm.images.filter(img => img && img.url) : [])
         };
       }
       return {
         ...defaultTerm,
-        images: [] // No default images as requested
+        images: Array.isArray(defaultTerm.images) ? defaultTerm.images.filter(img => img && img.url) : []
       };
     }).filter(Boolean);
   }, [customGlossaryEdits]);
