@@ -282,6 +282,21 @@ export default function App() {
     return safeEventsList.find(e => e && typeof e === 'object' && e.startDate && e.endDate && e.startDate <= todayStr && e.endDate >= todayStr);
   }, [safeEventsList, todayStr]);
 
+  // Automatic Daily Desktop/Mobile Push Notification for Today's Active Utsavam
+  useEffect(() => {
+    if (notificationsEnabled && todayEvent && 'Notification' in window && Notification.permission === 'granted') {
+      const lastNotifiedDate = localStorage.getItem('tirumala_last_notified_date');
+      if (lastNotifiedDate !== todayStr) {
+        new Notification('🌸 Today Tirumala Utsavam Alert!', {
+          body: `${todayEvent.title} is taking place today at Tirumala Tirupati temples! Tap to view details.`,
+          icon: '/logo.png',
+          badge: '/logo.png'
+        });
+        localStorage.setItem('tirumala_last_notified_date', todayStr);
+      }
+    }
+  }, [notificationsEnabled, todayEvent, todayStr]);
+
   // Feedback Handlers
   const handleAddFeedback = (newFeedback) => {
     setFeedbackList(prev => [newFeedback, ...prev]);
