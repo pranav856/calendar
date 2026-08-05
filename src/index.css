@@ -317,3 +317,15 @@ body.light-theme .glossary-term-card .detailed-meaning-box {
   border-color: rgba(217, 119, 6, 0.4) !important;
 }
 
+/* Event Cards High Contrast Title Rules for Light Theme */
+.event-card-title {
+  color: #FFFFFF;
+}
+body.light-theme .event-card-title {
+  color: #0F172A !important;
+}
+body.light-theme .group:hover .event-card-title,
+body.light-theme .event-card-title:hover {
+  color: #B45309 !important;
+}
+

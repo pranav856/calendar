@@ -351,7 +351,7 @@ export default function CalendarView({
                     {/* Content Section */}
                     <div className="p-4 space-y-3 flex-grow flex flex-col justify-between">
                       <div>
-                        <h3 className="font-serif text-lg font-bold text-slate-900 dark:text-white group-hover:text-amber-700 dark:group-hover:text-[#FFD700] transition-colors leading-snug">
+                        <h3 className="event-card-title font-serif text-lg font-bold text-slate-900 dark:text-white group-hover:text-amber-700 dark:group-hover:text-[#FFD700] transition-colors leading-snug">
                           {lang === 'en' ? evt.title : (evt.titleTe || evt.title)}
                         </h3>
 

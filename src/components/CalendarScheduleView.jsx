@@ -218,7 +218,7 @@ export default function CalendarScheduleView({
                           )}
                         </div>
 
-                        <h4 className="font-serif text-base sm:text-lg font-bold text-white group-hover:text-[#FFD700] transition-colors leading-snug">
+                        <h4 className="event-card-title font-serif text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-amber-700 dark:group-hover:text-[#FFD700] transition-colors leading-snug">
                           {lang === 'en' ? evt.title : (evt.titleTe || evt.title)}
                         </h4>
 
