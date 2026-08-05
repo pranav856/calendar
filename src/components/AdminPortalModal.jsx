@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Edit2, Trash2, ShieldCheck, Lock, LogOut, MessageSquare, FileSpreadsheet, Search, Eye, CheckCircle, Cloud, RefreshCw, Database, Server, Image, Video } from 'lucide-react';
+import { X, Plus, Edit2, Trash2, ShieldCheck, Lock, LogOut, MessageSquare, FileSpreadsheet, Search, Eye, CheckCircle, Cloud, RefreshCw, Database, Server, Image, Video, Upload } from 'lucide-react';
 import { TEMPLES } from '../data/templeEvents';
 import { getCloudConfig, saveCloudConfig, pushEventsToCloud, getLastSyncTime } from '../utils/cloudSync';
 import { normalizeImageUrl } from '../utils/eventStatus';
@@ -494,17 +494,42 @@ export default function AdminPortalModal({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div>
-                      <label className="text-[10px] font-bold text-[#FFD700] block mb-0.5">Image URL *</label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[10px] font-bold text-[#FFD700]">Image URL *</label>
+                        <label className="cursor-pointer text-[10px] font-extrabold text-[#FFD700] hover:text-white bg-[#FF5722]/30 hover:bg-[#FF5722]/60 border border-[#FF5722]/60 px-2 py-0.5 rounded flex items-center gap-1 transition-colors shadow">
+                          <Upload className="w-3 h-3 text-[#FFD700]" />
+                          <span>📁 Upload from PC</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files && e.target.files[0];
+                              if (file) {
+                                if (file.size > 8 * 1024 * 1024) {
+                                  alert('File is too large (max 8MB). Please select a smaller photo.');
+                                  return;
+                                }
+                                const reader = new FileReader();
+                                reader.onload = (ev) => {
+                                  handleImageFieldChange(idx, 'url', ev.target.result);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
                       <input
                         type="text"
                         value={imgObj.url}
                         onChange={(e) => handleImageFieldChange(idx, 'url', e.target.value)}
                         onBlur={(e) => handleImageFieldChange(idx, 'url', normalizeImageUrl(e.target.value))}
-                        placeholder="https://commons.wikimedia.org/wiki/File:... or .jpg/.png URL"
+                        placeholder="https://... or click Upload from PC"
                         className="w-full px-2.5 py-1.5 rounded-lg bg-[#141923] border border-[#D4AF37]/40 text-white text-xs font-mono"
                       />
                       <span className="text-[9px] text-[#94A3B8] block mt-0.5">
-                        💡 Tip: Wikimedia Commons & Drive links are auto-converted to direct image stream URLs!
+                        💡 Tip: Click "📁 Upload from PC" to select a photo from your computer, or paste a URL!
                       </span>
                     </div>
 
