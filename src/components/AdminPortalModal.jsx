@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Edit2, Trash2, ShieldCheck, Lock, LogOut, MessageSquare, FileSpreadsheet, Search, Eye, CheckCircle, Cloud, RefreshCw, Database, Server, Image } from 'lucide-react';
+import { X, Plus, Edit2, Trash2, ShieldCheck, Lock, LogOut, MessageSquare, FileSpreadsheet, Search, Eye, CheckCircle, Cloud, RefreshCw, Database, Server, Image, Video } from 'lucide-react';
 import { TEMPLES } from '../data/templeEvents';
 import { getCloudConfig, saveCloudConfig, pushEventsToCloud, getLastSyncTime } from '../utils/cloudSync';
 import { normalizeImageUrl } from '../utils/eventStatus';
@@ -323,6 +323,19 @@ export default function AdminPortalModal({
             >
               <Cloud className="w-3.5 h-3.5" />
               <span>Cloud Sync</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveAdminTab('youtube-live')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all ${
+                activeAdminTab === 'youtube-live'
+                  ? 'bg-gradient-to-r from-red-600 to-[#FFD700] text-black shadow'
+                  : 'bg-[#141923] text-red-400 border border-red-500/40 hover:bg-red-500/20'
+              }`}
+            >
+              <Video className="w-3.5 h-3.5 text-red-500" />
+              <span>🔴 YouTube Live</span>
             </button>
           </div>
         )}

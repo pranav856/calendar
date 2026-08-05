@@ -326,6 +326,16 @@ export default function App() {
               <span>Cloud Sync</span>
             </button>
 
+            {/* 🔴 TTD YouTube Live Stream Embed Settings Button */}
+            <button
+              onClick={() => setAdminModalMode('youtube-live')}
+              className="px-2.5 py-1 rounded bg-black/40 text-red-300 hover:text-white hover:bg-black/60 font-extrabold flex items-center gap-1 border border-red-500/50"
+              title="Configure TTD Daily YouTube Live Stream URL"
+            >
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+              <span>🔴 YouTube Live</span>
+            </button>
+
             {/* Logout Admin */}
             <button
               onClick={() => setIsAdminLoggedIn(false)}
