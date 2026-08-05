@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Plus, Edit2, Trash2, ShieldCheck, Lock, LogOut, MessageSquare, FileSpreadsheet, Search, Eye, CheckCircle, Cloud, RefreshCw, Database, Server, Image, Video, Upload } from 'lucide-react';
 import { TEMPLES } from '../data/templeEvents';
 import { getCloudConfig, saveCloudConfig, pushEventsToCloud, getLastSyncTime } from '../utils/cloudSync';
-import { normalizeImageUrl } from '../utils/eventStatus';
+import { normalizeImageUrl, compressImageFile } from '../utils/eventStatus';
 
 export default function AdminPortalModal({
   mode, // 'login' | 'edit-event' | 'feedback-inbox' | 'edit-glossary' | 'youtube-live'
@@ -503,18 +503,16 @@ export default function AdminPortalModal({
                             type="file"
                             accept="image/*"
                             className="hidden"
-                            onChange={(e) => {
+                            onChange={async (e) => {
                               const file = e.target.files && e.target.files[0];
                               if (file) {
-                                if (file.size > 8 * 1024 * 1024) {
-                                  alert('File is too large (max 8MB). Please select a smaller photo.');
-                                  return;
+                                try {
+                                  const compressedDataUrl = await compressImageFile(file);
+                                  handleImageFieldChange(idx, 'url', compressedDataUrl);
+                                } catch (err) {
+                                  console.error(err);
+                                  alert('Error processing photo file. Please try another image.');
                                 }
-                                const reader = new FileReader();
-                                reader.onload = (ev) => {
-                                  handleImageFieldChange(idx, 'url', ev.target.result);
-                                };
-                                reader.readAsDataURL(file);
                               }
                             }}
                           />
@@ -725,6 +723,19 @@ export default function AdminPortalModal({
               </div>
             )}
 
+            {/* Cloud Database Connection Warning Notice */}
+            {!cloudConfig.endpointUrl && (
+              <div className="p-3.5 rounded-xl bg-amber-950/60 border border-amber-500/50 text-amber-200 text-xs space-y-1">
+                <div className="flex items-center gap-1.5 font-extrabold text-[#FFD700]">
+                  <Cloud className="w-4 h-4 text-[#FF5722]" />
+                  <span>⚠️ Cloud Database Not Connected</span>
+                </div>
+                <p className="leading-relaxed text-[11px] text-amber-100">
+                  Currently, your event edits & computer-uploaded images are saved to your browser's local storage. To sync live across all devices & browsers in real-time, enter your <strong>Supabase REST URL</strong> and <strong>API Key</strong> in the fields below and click <strong>Save Settings & Sync</strong>.
+                </p>
+              </div>
+            )}
+
             {/* Cloud Endpoint Settings Form */}
             <form onSubmit={handleSaveCloudConfig} className="space-y-3 bg-[#141923] p-4 rounded-xl border border-white/10">
               <div className="flex items-center gap-2 text-xs font-bold text-white border-b border-white/10 pb-2">
@@ -926,20 +937,18 @@ CREATE POLICY "Allow public insert update" ON public.events FOR ALL USING (true)
                                 type="file"
                                 accept="image/*"
                                 className="hidden"
-                                onChange={(e) => {
+                                onChange={async (e) => {
                                   const file = e.target.files && e.target.files[0];
                                   if (file) {
-                                    if (file.size > 8 * 1024 * 1024) {
-                                      alert('File is too large (max 8MB). Please select a smaller photo.');
-                                      return;
-                                    }
-                                    const reader = new FileReader();
-                                    reader.onload = (ev) => {
+                                    try {
+                                      const compressedDataUrl = await compressImageFile(file);
                                       const updated = [...glossaryForm.images];
-                                      updated[idx].url = ev.target.result;
+                                      updated[idx].url = compressedDataUrl;
                                       setGlossaryForm({ ...glossaryForm, images: updated });
-                                    };
-                                    reader.readAsDataURL(file);
+                                    } catch (err) {
+                                      console.error(err);
+                                      alert('Error processing photo file. Please try another image.');
+                                    }
                                   }
                                 }}
                               />
