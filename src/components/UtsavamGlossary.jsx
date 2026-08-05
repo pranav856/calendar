@@ -272,10 +272,10 @@ export default function UtsavamGlossary({
                 key={item.id}
                 ref={el => termRefs.current[item.id] = el}
                 onClick={() => toggleExpand(item.id)}
-                className={`glass-card glossary-card-hover rounded-2xl p-5 border transition-all duration-300 flex flex-col justify-between group cursor-pointer ${
+                className={`glass-card glossary-card-hover glossary-term-card rounded-2xl p-5 border transition-all duration-300 flex flex-col justify-between group cursor-pointer ${
                   isExpanded
-                    ? 'border-[#FFD700] bg-[#141923]/95 shadow-2xl ring-2 ring-[#FFD700]/50'
-                    : 'border-[#D4AF37]/40 bg-[#0B0E14]/90 shadow-md'
+                    ? 'border-[#FFD700] dark:border-[#FFD700] bg-white dark:bg-[#141923]/95 shadow-2xl ring-2 ring-amber-500/30 dark:ring-[#FFD700]/50'
+                    : 'border-amber-600/30 dark:border-[#D4AF37]/40 bg-white dark:bg-[#0B0E14]/90 shadow-md'
                 }`}
               >
                 <div className="space-y-3">
@@ -284,13 +284,13 @@ export default function UtsavamGlossary({
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="font-serif text-lg sm:text-xl font-bold text-white group-hover:text-[#FFD700] transition-colors tracking-wide">
+                        <h3 className="font-serif text-lg sm:text-xl font-bold text-slate-900 dark:text-white group-hover:text-amber-700 dark:group-hover:text-[#FFD700] transition-colors tracking-wide">
                           {lang === 'en' ? item.term : item.termTe}
                         </h3>
                       </div>
 
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-xs text-[#FFD700] font-sans font-semibold">
+                        <span className="text-xs text-amber-700 dark:text-[#FFD700] font-sans font-semibold">
                           {item.termTe}
                         </span>
                       </div>
@@ -308,14 +308,14 @@ export default function UtsavamGlossary({
                         </button>
                       )}
 
-                      <span className="text-[10px] px-2 py-1 rounded-lg bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-[#FFD700] font-extrabold uppercase">
+                      <span className="text-[10px] px-2 py-1 rounded-lg bg-amber-500/10 dark:bg-[#D4AF37]/20 border border-amber-600/30 dark:border-[#D4AF37]/40 text-amber-800 dark:text-[#FFD700] font-extrabold uppercase">
                         {item.category.replace('_', ' ')}
                       </span>
                     </div>
                   </div>
 
                   {/* Short Description (High Contrast text for Light/Dark mode) */}
-                  <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
+                  <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
                     {lang === 'en' ? item.shortDesc : item.shortDescTe}
                   </p>
 
@@ -352,13 +352,13 @@ export default function UtsavamGlossary({
 
                   {/* Detailed Meaning (Expandable Multi-Paragraph) */}
                   {isExpanded && (
-                    <div className="pt-3 border-t border-[#D4AF37]/30 space-y-3 animate-fade-in">
+                    <div className="pt-3 border-t border-amber-600/20 dark:border-[#D4AF37]/30 space-y-3 animate-fade-in">
                       <div className="space-y-1">
-                        <span className="text-[11px] font-extrabold text-[#FFD700] uppercase tracking-wider flex items-center gap-1">
+                        <span className="text-[11px] font-extrabold text-amber-800 dark:text-[#FFD700] uppercase tracking-wider flex items-center gap-1">
                           <Info className="w-3.5 h-3.5" />
                           {lang === 'en' ? 'Detailed History & Meaning' : 'వివరమైన నేపథ్యం & పురాణ అంతరార్థం'}
                         </span>
-                        <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 leading-relaxed bg-[#141923] p-3.5 rounded-xl border border-[#D4AF37]/30 whitespace-pre-line space-y-2 font-medium">
+                        <div className="detailed-meaning-box text-xs sm:text-sm text-slate-800 dark:text-slate-100 leading-relaxed bg-amber-50/80 dark:bg-[#141923] p-3.5 rounded-xl border border-amber-600/30 dark:border-[#D4AF37]/30 whitespace-pre-line space-y-2 font-medium">
                           {lang === 'en' ? item.detailedMeaning : item.detailedMeaningTe}
                         </div>
                       </div>
@@ -366,11 +366,11 @@ export default function UtsavamGlossary({
                   )}
 
                   {/* Individual Term Source Attribution */}
-                  <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[11px] font-semibold text-[#FFD700]/90">
+                  <div className="pt-2 border-t border-slate-200 dark:border-white/5 flex items-center justify-between text-[11px] font-semibold text-amber-800 dark:text-[#FFD700]">
                     <span className="flex items-center gap-1">
                       📜 {lang === 'en' ? 'Source: TTD Sapthagiri Magazine (Sept 2020)' : 'ఆధారం: టిటిడి సప్తగిరి పత్రిక (సెప్టెంబరు 2020)'}
                     </span>
-                    <button className="text-[#FFD700] group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                    <button className="text-amber-700 dark:text-[#FFD700] group-hover:translate-x-1 transition-transform flex items-center gap-1 font-bold">
                       <span>{isExpanded ? (lang === 'en' ? 'Less ▲' : 'తక్కువ ▲') : (lang === 'en' ? 'Read More ▼' : 'మరిన్ని వివరాలు ▼')}</span>
                     </button>
                   </div>
