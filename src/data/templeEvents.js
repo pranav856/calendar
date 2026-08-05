@@ -1461,6 +1461,30 @@ export const INITIAL_EVENTS = [
     vahanam: 'Jwalathoranam & Traditional Ghee Lamps',
     description: 'Illumination of thousands of traditional lamps at Kapila Theertham and Tirumala on auspicious Karthika Pournami.'
   },
+  {
+    id: 'ttd-annamacharya-jayanthi-2026',
+    templeId: 'tirupati-main',
+    title: 'Sri Tallapaka Annamacharya 618th Jayanthi Utsavam & Sankeertana Aradhana',
+    titleTe: 'శ్రీ తాళ్లపాక అన్నమాచార్యుల 618వ జయంతి ఉత్సవాలు & సంగీత ఆరాధన',
+    startDate: '2026-05-18',
+    endDate: '2026-05-22',
+    category: 'utsavam',
+    highlight: true,
+    isMajor: true,
+    location: 'Annamacharya Kalamandiram & Narayanagiri Gardens, Tirupati',
+    time: '06:00 AM - 09:00 PM Daily',
+    crowdLevel: 'High',
+    crowdBadge: 'Sankeertana Festival',
+    vahanam: 'Metlotsavam & Daily Sapthagiri Sankeertanarchana',
+    imageUrl: 'https://rjdltvopbejhvbheindb.supabase.co/storage/v1/object/public/event-photos/Annamaacaaryulu.jpg',
+    images: [
+      {
+        url: 'https://rjdltvopbejhvbheindb.supabase.co/storage/v1/object/public/event-photos/Annamaacaaryulu.jpg',
+        caption: 'Sri Tallapaka Annamacharya - Supreme Pada Kavitha Pitamaha of Tirumala'
+      }
+    ],
+    description: 'Annual 5-day sankeertana celebration in honor of Pada Kavitha Pitamaha Sri Tallapaka Annamacharya with grand Metlotsavam procession from Alipiri to Tirumala.'
+  },
 
   // DECEMBER 2026
   {

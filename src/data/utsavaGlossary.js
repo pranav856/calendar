@@ -1062,7 +1062,13 @@ His descendants continue to sing lullabies during night Ekanta Seva.`,
 స్వామివారి వైభవంపై 32,000 పదాత్మక సంకీర్తనలను రచించారు. గరుడ సేవ, రథోత్సవం, ఏకాంత సేవలపై ఆయన రచించిన కీర్తనలు నేటికీ తిరుమలలో మార్మోగుతాయి.
 
 రాత్రి ఏకాంత సేవ సమయంలో అన్నమయ్య వంశస్థులు స్వామివారికి జోలపాట పాడుతారు.`,
-    relatedEventKeywords: ['Annamacharya', 'అన్నమయ్య', 'Sankeertana']
+    relatedEventKeywords: ['Annamacharya', 'అన్నమయ్య', 'Sankeertana'],
+    images: [
+      {
+        url: 'https://rjdltvopbejhvbheindb.supabase.co/storage/v1/object/public/event-photos/Annamaacaaryulu.jpg',
+        caption: 'Sri Tallapaka Annamacharya - Supreme Saint-Composer of Tirumala'
+      }
+    ]
   },
   {
     id: 'sri-ramanuja',

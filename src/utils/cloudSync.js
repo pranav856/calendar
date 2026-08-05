@@ -16,7 +16,7 @@ export function getCloudConfig() {
     console.error('Error loading cloud config:', e);
   }
   return {
-    endpointUrl: '',
+    endpointUrl: 'https://rjdltvopbejhvbheindb.supabase.co/rest/v1',
     apiKey: '',
     autoSync: true,
     provider: 'supabase_rest' // 'supabase_rest' | 'custom_api'
