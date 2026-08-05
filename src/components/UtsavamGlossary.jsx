@@ -116,7 +116,7 @@ export default function UtsavamGlossary({
     <div className="space-y-6 pb-12 animate-fade-in">
       
       {/* HEADER HERO BANNER (Top source banner removed as requested) */}
-      <div className="glass-card p-6 sm:p-8 rounded-3xl border-2 border-[#D4AF37]/50 bg-gradient-to-r from-[#141923] via-[#0B0E14] to-[#1F1707] text-white shadow-2xl relative overflow-hidden">
+      <div className="dark-hero-card p-6 sm:p-8 rounded-3xl border-2 border-[#D4AF37]/50 bg-gradient-to-r from-[#141923] via-[#0B0E14] to-[#1F1707] text-white shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#FFD700]/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
         
         <div className="relative z-10 space-y-3 max-w-3xl">
@@ -167,7 +167,7 @@ export default function UtsavamGlossary({
       {!searchTerm && selectedCategory === 'all' && featuredTerm && (
         <div 
           onClick={() => handleScrollToFeatured(featuredTerm.id)}
-          className="glass-card glossary-card-hover p-5 sm:p-6 rounded-2xl border-2 border-[#FFD700]/70 bg-gradient-to-r from-[#1A1500] via-[#141923] to-[#0B0E14] relative shadow-xl cursor-pointer group"
+          className="dark-hero-card glossary-card-hover p-5 sm:p-6 rounded-2xl border-2 border-[#FFD700]/70 bg-gradient-to-r from-[#1A1500] via-[#141923] to-[#0B0E14] relative shadow-xl cursor-pointer group"
           title="Click to view full detailed meaning"
         >
           <div className="flex items-center justify-between gap-2 mb-3">
