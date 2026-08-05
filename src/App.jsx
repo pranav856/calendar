@@ -10,6 +10,7 @@ import AdminPortalModal from './components/AdminPortalModal';
 import ReferencesList from './components/ReferencesList';
 import UtsavamGlossary from './components/UtsavamGlossary';
 import { INITIAL_EVENTS } from './data/templeEvents';
+import { pullEventsFromCloud } from './utils/cloudSync';
 import { ShieldCheck, LogOut, Edit2, X, ExternalLink, MessageSquare, Plus, Cloud, Lock } from 'lucide-react';
 
 export default function App() {
@@ -64,22 +65,35 @@ export default function App() {
     }
   }, [isAdminLoggedIn]);
 
-  // Defensive Dynamic Events State Initializer
+  // Dynamic Events State Initializer with complete merge for edited default events
   const [eventsList, setEventsList] = useState(() => {
     try {
       const storedEvents = localStorage.getItem('tirumala_custom_events_v5');
       if (storedEvents) {
         const parsed = JSON.parse(storedEvents);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Remove Independence Day events
+          // Remove Independence Day events if present
           const cleanParsed = parsed.filter(e => {
+            if (!e || !e.id) return false;
             const title = (e.title || '').toLowerCase();
             const titleTe = e.titleTe || '';
             const desc = (e.description || '').toLowerCase();
             return !title.includes('independence') && !titleTe.includes('స్వాతంత్ర్య') && !desc.includes('independence');
           });
-          const customUserAdded = cleanParsed.filter(e => e.id.startsWith('custom-'));
-          return [...INITIAL_EVENTS, ...customUserAdded];
+
+          // Map stored events by ID
+          const storedMap = new Map(cleanParsed.map(e => [e.id, e]));
+
+          // Replace default events with any stored edits
+          const mergedInitial = INITIAL_EVENTS.map(initEvt => {
+            return storedMap.has(initEvt.id) ? storedMap.get(initEvt.id) : initEvt;
+          });
+
+          // Keep newly created custom events (whose ID is not in INITIAL_EVENTS)
+          const initIds = new Set(INITIAL_EVENTS.map(e => e.id));
+          const newCustomEvents = cleanParsed.filter(e => !initIds.has(e.id));
+
+          return [...mergedInitial, ...newCustomEvents];
         }
       }
       return INITIAL_EVENTS;
@@ -96,6 +110,32 @@ export default function App() {
       console.error(e);
     }
   }, [eventsList]);
+
+  // Auto-Pull Events from Cloud Database on Mount if Cloud Configured
+  useEffect(() => {
+    async function syncFromCloudOnMount() {
+      try {
+        const res = await pullEventsFromCloud();
+        if (res.success && Array.isArray(res.events) && res.events.length > 0) {
+          const remoteMap = new Map(res.events.map(e => [e.id, e]));
+          
+          setEventsList(prevEvents => {
+            const merged = prevEvents.map(localEvt => {
+              return remoteMap.has(localEvt.id) ? { ...localEvt, ...remoteMap.get(localEvt.id) } : localEvt;
+            });
+            
+            const localIds = new Set(prevEvents.map(e => e.id));
+            const newRemoteEvents = res.events.filter(e => !localIds.has(e.id));
+            return [...merged, ...newRemoteEvents];
+          });
+        }
+      } catch (err) {
+        console.log('Cloud auto-pull status:', err);
+      }
+    }
+
+    syncFromCloudOnMount();
+  }, []);
 
   // Defensive Community Feedback Submissions State Initializer
   const [feedbackList, setFeedbackList] = useState(() => {
