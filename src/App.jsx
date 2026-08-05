@@ -171,12 +171,14 @@ export default function App() {
     }
   };
 
-  // TTD YouTube Live Stream State
+  // TTD YouTube Live Stream State (Default to Official SVBC/TTD Live Link)
+  const DEFAULT_TTD_LIVE_URL = 'https://www.youtube.com/live/Z6nHz5CU10I?si=s15-FIsreA6ltSQl';
+
   const [ttdLiveUrl, setTtdLiveUrl] = useState(() => {
     try {
-      return localStorage.getItem('tirumala_ttd_live_url') || '';
+      return localStorage.getItem('tirumala_ttd_live_url') || DEFAULT_TTD_LIVE_URL;
     } catch {
-      return '';
+      return DEFAULT_TTD_LIVE_URL;
     }
   });
   const [isLiveStreamModalOpen, setIsLiveStreamModalOpen] = useState(false);
@@ -518,7 +520,9 @@ export default function App() {
                   ttdLiveUrl.includes('embed/')
                     ? ttdLiveUrl
                     : `https://www.youtube.com/embed/${
-                        ttdLiveUrl.includes('v=')
+                        ttdLiveUrl.includes('/live/')
+                          ? ttdLiveUrl.split('/live/')[1].split('?')[0].split('&')[0]
+                          : ttdLiveUrl.includes('v=')
                           ? ttdLiveUrl.split('v=')[1].split('&')[0]
                           : ttdLiveUrl.includes('youtu.be/')
                           ? ttdLiveUrl.split('youtu.be/')[1].split('?')[0]
