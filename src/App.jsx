@@ -10,7 +10,7 @@ import AdminPortalModal from './components/AdminPortalModal';
 import ReferencesList from './components/ReferencesList';
 import UtsavamGlossary from './components/UtsavamGlossary';
 import { INITIAL_EVENTS } from './data/templeEvents';
-import { pullEventsFromCloud } from './utils/cloudSync';
+import { pullEventsFromCloud, pushEventsToCloud } from './utils/cloudSync';
 import { ShieldCheck, LogOut, Edit2, X, ExternalLink, MessageSquare, Plus, Cloud, Lock } from 'lucide-react';
 
 export default function App() {
@@ -312,15 +312,27 @@ export default function App() {
 
   // Admin CRUD operations for events
   const handleAddEvent = (newEvent) => {
-    setEventsList(prev => [newEvent, ...prev]);
+    setEventsList(prev => {
+      const next = [newEvent, ...prev];
+      pushEventsToCloud(next).catch(err => console.warn('Auto cloud sync warning:', err));
+      return next;
+    });
   };
 
   const handleUpdateEvent = (updatedEvent) => {
-    setEventsList(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+    setEventsList(prev => {
+      const next = prev.map(e => e.id === updatedEvent.id ? updatedEvent : e);
+      pushEventsToCloud(next).catch(err => console.warn('Auto cloud sync warning:', err));
+      return next;
+    });
   };
 
   const handleDeleteEvent = (eventId) => {
-    setEventsList(prev => prev.filter(e => e.id !== eventId));
+    setEventsList(prev => {
+      const next = prev.filter(e => e.id !== eventId);
+      pushEventsToCloud(next).catch(err => console.warn('Auto cloud sync warning:', err));
+      return next;
+    });
     try {
       const deletedStored = localStorage.getItem('tirumala_deleted_event_ids_v1');
       const deletedIds = new Set(deletedStored ? JSON.parse(deletedStored) : []);

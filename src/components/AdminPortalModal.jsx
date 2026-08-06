@@ -205,7 +205,7 @@ export default function AdminPortalModal({
     const eventPayload = {
       ...eventForm,
       images: cleanedImages,
-      imageUrl: cleanedImages.length > 0 ? cleanedImages[0].url : (eventForm.imageUrl || '')
+      imageUrl: cleanedImages.length > 0 ? cleanedImages[0].url : ''
     };
 
     if (targetEvent) {
