@@ -112,21 +112,88 @@ export async function pushEventsToCloud(events) {
         body: payload
       });
 
-      // Fallback: If merge-duplicates upsert is rejected by schema/RLS, retry with clean POST
-      if (!response.ok && (response.status === 400 || response.status === 405)) {
-        const cleanUrl = targetUrl.replace(/[\?&]on_conflict=id/, '');
-        const retryResp = await fetch(cleanUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': apiKey,
-            'Authorization': apiKey ? `Bearer ${apiKey}` : '',
-            'Prefer': 'return=representation'
-          },
-          body: payload
-        });
-        if (retryResp.ok) {
-          response = retryResp;
+      // Fallback: If bulk merge-duplicates upsert fails (e.g. missing primary key constraint on 'id' column in Postgres), execute per-event PATCH/POST
+      if (!response.ok && (response.status === 400 || response.status === 405 || response.status === 409)) {
+        console.warn('Bulk on_conflict upsert failed, retrying with individual event PATCH/POST requests...');
+        const cleanBaseUrl = targetUrl.split('/events')[0] + '/events';
+        let patchSuccess = true;
+        let patchError = null;
+
+        for (const evt of events) {
+          const evtId = String(evt.id);
+          const evtPayload = JSON.stringify([{
+            id: evtId,
+            title: evt.title,
+            title_te: evt.titleTe || evt.title,
+            temple_id: evt.templeId,
+            start_date: evt.startDate,
+            end_date: evt.endDate,
+            category: evt.category,
+            vahanam: evt.vahanam || '',
+            description: evt.description || '',
+            description_te: evt.descriptionTe || '',
+            image_url: evt.imageUrl || ''
+          }]);
+
+          const patchUrl = `${cleanBaseUrl}?id=eq.${encodeURIComponent(evtId)}${apiKey ? `&apikey=${encodeURIComponent(apiKey)}` : ''}`;
+          
+          let patchResp = await fetch(patchUrl, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': apiKey,
+              'Authorization': apiKey ? `Bearer ${apiKey}` : '',
+              'Prefer': 'return=representation'
+            },
+            body: JSON.stringify({
+              title: evt.title,
+              title_te: evt.titleTe || evt.title,
+              temple_id: evt.templeId,
+              start_date: evt.startDate,
+              end_date: evt.endDate,
+              category: evt.category,
+              vahanam: evt.vahanam || '',
+              description: evt.description || '',
+              description_te: evt.descriptionTe || '',
+              image_url: evt.imageUrl || ''
+            })
+          });
+
+          let patchedData = [];
+          if (patchResp.ok) {
+            try { patchedData = await patchResp.json(); } catch { }
+          }
+
+          // If row doesn't exist in Supabase DB yet, insert via POST
+          if (!patchResp.ok || (Array.isArray(patchedData) && patchedData.length === 0)) {
+            const postUrl = `${cleanBaseUrl}${apiKey ? `?apikey=${encodeURIComponent(apiKey)}` : ''}`;
+            const postResp = await fetch(postUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': apiKey,
+                'Authorization': apiKey ? `Bearer ${apiKey}` : '',
+                'Prefer': 'return=representation'
+              },
+              body: evtPayload
+            });
+            if (!postResp.ok) {
+              patchSuccess = false;
+              try {
+                const errJson = await postResp.json();
+                patchError = errJson.message || errJson.hint || postResp.statusText;
+              } catch {
+                patchError = `HTTP ${postResp.status}`;
+              }
+            }
+          }
+        }
+
+        if (patchSuccess) {
+          const syncTime = updateLastSyncTimestamp();
+          return { success: true, isError: false, message: '✅ All Events & Photos Synchronized to Supabase Cloud Successfully!', timestamp: syncTime };
+        } else {
+          throw new Error(`Cloud Sync failed: ${patchError || 'Database write error'}`);
         }
       }
 
@@ -155,7 +222,7 @@ export async function pushEventsToCloud(events) {
           throw new Error(`Supabase RLS Policy blocked the update (0 rows written). Please run the RLS SQL script in Supabase!`);
         }
       } catch (e) {
-        if (e.message.includes('RLS Policy blocked')) throw e;
+        if (e.message && e.message.includes('RLS Policy blocked')) throw e;
       }
 
       const syncTime = updateLastSyncTimestamp();
