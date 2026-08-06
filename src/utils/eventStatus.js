@@ -155,6 +155,10 @@ export function normalizeImageUrl(url) {
   if (!url || typeof url !== 'string') return '';
   let cleanUrl = url.trim();
 
+  if (cleanUrl.startsWith('event-photos/')) {
+    return `https://rjdltvopbejhvbheindb.supabase.co/storage/v1/object/public/${cleanUrl}`;
+  }
+
   if (cleanUrl.includes('commons.wikimedia.org/wiki/File:')) {
     const filename = cleanUrl.split('File:')[1].split('#')[0].split('?')[0];
     return `https://commons.wikimedia.org/wiki/Special:FilePath/${filename}`;

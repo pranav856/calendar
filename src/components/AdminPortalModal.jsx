@@ -512,8 +512,10 @@ export default function AdminPortalModal({
                                   if (storageRes.success && storageRes.publicUrl) {
                                     handleImageFieldChange(idx, 'url', storageRes.publicUrl);
                                   } else {
+                                    console.warn('Supabase storage upload failed:', storageRes.message);
                                     const compressedDataUrl = await compressImageFile(file);
                                     handleImageFieldChange(idx, 'url', compressedDataUrl);
+                                    alert(`⚠️ Could not upload directly to Supabase Storage (${storageRes.message || 'Check Admin -> Cloud Sync credentials & Storage RLS policies'}). Image saved to browser cache.`);
                                   }
                                 } catch (err) {
                                   console.error(err);
