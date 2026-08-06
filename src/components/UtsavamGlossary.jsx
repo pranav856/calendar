@@ -36,7 +36,7 @@ export default function UtsavamGlossary({
           shortDescTe: customEdit.shortDescTe || defaultTerm.shortDescTe || '',
           detailedMeaning: customEdit.detailedMeaning || defaultTerm.detailedMeaning || '',
           detailedMeaningTe: customEdit.detailedMeaningTe || defaultTerm.detailedMeaningTe || '',
-          images: Array.isArray(customEdit.images) 
+          images: (Array.isArray(customEdit.images) && customEdit.images.length > 0)
             ? customEdit.images.filter(img => img && img.url) 
             : (Array.isArray(defaultTerm.images) ? defaultTerm.images.filter(img => img && img.url) : [])
         };

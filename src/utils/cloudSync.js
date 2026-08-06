@@ -87,7 +87,7 @@ export async function pushEventsToCloud(events) {
       }
 
       const payload = JSON.stringify(events.map(e => ({
-        id: e.id,
+        id: String(e.id),
         title: e.title,
         title_te: e.titleTe || e.title,
         temple_id: e.templeId,
@@ -237,8 +237,9 @@ export async function pullEventsFromCloud() {
 
 /**
  * Upload binary file directly to Supabase Storage bucket ('event-photos')
+ * Supports Option 1 subfolder structure: event-photos/<folderOrId>/<filename>
  */
-export async function uploadFileToSupabaseStorage(file) {
+export async function uploadFileToSupabaseStorage(file, folderOrId = '') {
   const config = getCloudConfig();
   if (!config.endpointUrl || !config.apiKey) {
     return { success: false, message: 'Cloud credentials missing in Admin -> Cloud Sync.' };
@@ -252,7 +253,11 @@ export async function uploadFileToSupabaseStorage(file) {
 
     const ext = (file.name || 'image.jpg').split('.').pop() || 'jpg';
     const filename = `utsavam_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
-    const uploadUrl = `${baseUrl}/storage/v1/object/event-photos/${filename}`;
+    
+    // Clean folder / eventId slug if provided
+    const cleanFolder = folderOrId ? String(folderOrId).trim().replace(/[^a-zA-Z0-9_-]/g, '_') : '';
+    const objectPath = cleanFolder ? `${cleanFolder}/${filename}` : filename;
+    const uploadUrl = `${baseUrl}/storage/v1/object/event-photos/${objectPath}`;
 
     const apiKey = config.apiKey.trim();
 
@@ -278,8 +283,8 @@ export async function uploadFileToSupabaseStorage(file) {
       throw new Error(`Storage error (${response.status}): ${errText}`);
     }
 
-    const publicUrl = `${baseUrl}/storage/v1/object/public/event-photos/${filename}`;
-    return { success: true, publicUrl };
+    const publicUrl = `${baseUrl}/storage/v1/object/public/event-photos/${objectPath}`;
+    return { success: true, publicUrl, objectPath };
   } catch (err) {
     console.warn('Supabase Storage upload warning:', err);
     return { success: false, message: err.message };

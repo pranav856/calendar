@@ -507,7 +507,8 @@ export default function AdminPortalModal({
                               const file = e.target.files && e.target.files[0];
                               if (file) {
                                 try {
-                                  const storageRes = await uploadFileToSupabaseStorage(file);
+                                  const eventFolder = targetEvent?.id || eventForm.title || 'event';
+                                  const storageRes = await uploadFileToSupabaseStorage(file, eventFolder);
                                   if (storageRes.success && storageRes.publicUrl) {
                                     handleImageFieldChange(idx, 'url', storageRes.publicUrl);
                                   } else {
@@ -952,7 +953,8 @@ ALTER TABLE public.events DISABLE ROW LEVEL SECURITY;`;
                                   const file = e.target.files && e.target.files[0];
                                   if (file) {
                                     try {
-                                      const storageRes = await uploadFileToSupabaseStorage(file);
+                                      const glossaryFolder = `glossary/${glossaryForm.id || glossaryForm.term || 'general'}`;
+                                      const storageRes = await uploadFileToSupabaseStorage(file, glossaryFolder);
                                       const finalUrl = (storageRes.success && storageRes.publicUrl)
                                         ? storageRes.publicUrl
                                         : await compressImageFile(file);
