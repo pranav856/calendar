@@ -67,23 +67,47 @@ const {themeMode,setThemeMode,toggleTheme,} = useTheme();
   useEffect(() => {
     async function syncFromCloudOnMount() {
       try {
-        const res = await pullEventsFromCloud();
-        if (res.success && Array.isArray(res.events) && res.events.length > 0) {
-          const remoteMap = new Map(res.events.map(e => [e.id, e]));
-          
-          setEventsList(prevEvents => {
-            const merged = prevEvents.map(localEvt => {
-              return remoteMap.has(localEvt.id) ? { ...localEvt, ...remoteMap.get(localEvt.id) } : localEvt;
-            });
-            
-            const localIds = new Set(prevEvents.map(e => e.id));
-            const newRemoteEvents = res.events.filter(e => !localIds.has(e.id));
-            return [...merged, ...newRemoteEvents];
-          });
-        }
+       const res = await pullEventsFromCloud();
+
+// Cloud Sync not configured yet → silently continue using local data
+if (
+  res.message === "Cloud Sync not configured."
+) {
+  return;
+}
+
+if (
+  res.success &&
+  Array.isArray(res.events) &&
+  res.events.length > 0
+) {
+  const remoteMap = new Map(
+    res.events.map(e => [e.id, e])
+  );
+
+  setEventsList(prevEvents => {
+    const merged = prevEvents.map(localEvt =>
+      remoteMap.has(localEvt.id)
+        ? { ...localEvt, ...remoteMap.get(localEvt.id) }
+        : localEvt
+    );
+
+    const localIds = new Set(
+      prevEvents.map(e => e.id)
+    );
+
+    const newRemoteEvents =
+      res.events.filter(e => !localIds.has(e.id));
+
+    return [...merged, ...newRemoteEvents];
+  });
+}
       } catch (err) {
-        console.log('Cloud auto-pull status:', err);
-      }
+  console.warn(
+    "Cloud auto-pull failed:",
+    err
+  );
+}
     }
 
     syncFromCloudOnMount();

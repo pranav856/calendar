@@ -3,8 +3,10 @@
  * Supports cloud backend configuration (Supabase / REST API) with offline localStorage fallback.
  */
 
-const STORAGE_KEY_CONFIG = 'tirumala_cloud_config';
-const STORAGE_KEY_LAST_SYNC = 'tirumala_cloud_last_sync';
+import { STORAGE_KEYS } from "../config/storageKeys";
+
+const STORAGE_KEY_CONFIG = STORAGE_KEYS.CLOUD_CONFIG;
+const STORAGE_KEY_LAST_SYNC = STORAGE_KEYS.CLOUD_LAST_SYNC;
 
 export function getCloudConfig() {
   try {
@@ -258,9 +260,18 @@ export async function pushEventsToCloud(events) {
  */
 export async function pullEventsFromCloud() {
   const config = getCloudConfig();
-  if (!config.endpointUrl || config.endpointUrl.trim() === '') {
-    return { success: false, message: 'No Cloud Endpoint configured.' };
-  }
+ 
+if (
+  !config.endpointUrl ||
+  config.endpointUrl.trim() === "" ||
+  !config.apiKey ||
+  config.apiKey.trim() === ""
+) {
+  return {
+    success: false,
+    message: "Cloud Sync not configured.",
+  };
+}
 
   try {
     let targetUrl = config.endpointUrl.replace(/\/$/, '');
