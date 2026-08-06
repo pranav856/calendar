@@ -367,3 +367,58 @@ export async function uploadFileToSupabaseStorage(file, folderOrId = '') {
     return { success: false, message: err.message };
   }
 }
+
+export async function deleteEventFromCloud(eventId) {
+  const config = getCloudConfig();
+
+  if (!config.endpointUrl || !config.apiKey) {
+    return {
+      success: false,
+      message: "Cloud configuration missing."
+    };
+  }
+
+  try {
+    let targetUrl = config.endpointUrl.trim().replace(/\/$/, "");
+
+    if (targetUrl.includes(".supabase.co")) {
+      if (!targetUrl.includes("/rest/v1")) {
+        targetUrl = `${targetUrl}/rest/v1/events`;
+      } else if (!targetUrl.endsWith("/events")) {
+        targetUrl = `${targetUrl}/events`;
+      }
+    }
+
+    const apiKey = config.apiKey.trim();
+
+    targetUrl =
+      `${targetUrl}?id=eq.${encodeURIComponent(eventId)}`;
+
+    const response = await fetch(targetUrl, {
+      method: "DELETE",
+      headers: {
+        apikey: apiKey,
+        Authorization: `Bearer ${apiKey}`,
+        Prefer: "return=representation"
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Delete failed (${response.status})`);
+    }
+
+    updateLastSyncTimestamp();
+
+    return {
+      success: true
+    };
+
+  } catch (err) {
+    console.warn(err);
+
+    return {
+      success: false,
+      message: err.message
+    };
+  }
+}

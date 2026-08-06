@@ -1,3 +1,10 @@
+import {loadStoredEvents,saveStoredEvents,loadDeletedEventIds,saveDeletedEventIds,} from "./utils/eventStorage";
+import { mergeEvents } from "./utils/eventMerge";
+import useAdmin from "./hooks/useAdmin";
+import useTheme from "./hooks/useTheme";
+import useLocalStorage from "./hooks/usePersistentState";
+import { STORAGE_KEYS } from "./config/storageKeys";
+import { APP_CONFIG } from "./config/appConfig";
 import React, { useState, useEffect, useMemo } from 'react';
 import Header from './components/Header';
 import HeroBanner from './components/HeroBanner';
@@ -10,7 +17,7 @@ import AdminPortalModal from './components/AdminPortalModal';
 import ReferencesList from './components/ReferencesList';
 import UtsavamGlossary from './components/UtsavamGlossary';
 import { INITIAL_EVENTS } from './data/templeEvents';
-import { pullEventsFromCloud, pushEventsToCloud } from './utils/cloudSync';
+import {pullEventsFromCloud,pushEventsToCloud,deleteEventFromCloud} from "./utils/cloudSync";
 import { ShieldCheck, LogOut, Edit2, X, ExternalLink, MessageSquare, Plus, Cloud, Lock } from 'lucide-react';
 
 export default function App() {
@@ -18,27 +25,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('calendar-page');
   const [lang, setLang] = useState('en'); // 'en' | 'te'
   
-  // Theme Mode state ('dark' | 'light')
-  const [themeMode, setThemeMode] = useState(() => {
-    try {
-      return localStorage.getItem('tirumala_theme_mode') || 'dark';
-    } catch {
-      return 'dark';
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('tirumala_theme_mode', themeMode);
-    } catch (e) {
-      console.error(e);
-    }
-    if (themeMode === 'light') {
-      document.body.classList.add('light-theme');
-    } else {
-      document.body.classList.remove('light-theme');
-    }
-  }, [themeMode]);
+  // Theme Mode state ('dark' | 'light') 
+const {themeMode,setThemeMode,toggleTheme,} = useTheme();
 
   const [selectedTemple, setSelectedTemple] = useState('all');
   const [selectedEventModal, setSelectedEventModal] = useState(null);
@@ -49,57 +37,20 @@ export default function App() {
   const [isLogoModalOpen, setIsLogoModalOpen] = useState(false);
 
   // Admin Logged In State
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
-    try {
-      return localStorage.getItem('tirumala_admin_session') === 'true';
-    } catch {
-      return false;
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('tirumala_admin_session', isAdminLoggedIn ? 'true' : 'false');
-    } catch (e) {
-      console.error(e);
-    }
-  }, [isAdminLoggedIn]);
+  const {isAdminLoggedIn,setIsAdminLoggedIn,login,logout,} = useAdmin();
 
   // Dynamic Events State Initializer with complete merge for edited default events & deleted tracking
   const [eventsList, setEventsList] = useState(() => {
     try {
       // Load deleted event IDs
-      const deletedStored = localStorage.getItem('tirumala_deleted_event_ids_v1');
-      const deletedIds = new Set(deletedStored ? JSON.parse(deletedStored) : []);
+      const deletedIds = loadDeletedEventIds();
 
-      const storedEvents = localStorage.getItem('tirumala_custom_events_v5');
+      const storedEvents = loadStoredEvents();
       if (storedEvents) {
-        const parsed = JSON.parse(storedEvents);
+        const parsed = storedEvents;
         if (Array.isArray(parsed) && parsed.length > 0) {
           // Remove Independence Day events & deleted events
-          const cleanParsed = parsed.filter(e => {
-            if (!e || !e.id || deletedIds.has(e.id)) return false;
-            const title = (e.title || '').toLowerCase();
-            const titleTe = e.titleTe || '';
-            const desc = (e.description || '').toLowerCase();
-            return !title.includes('independence') && !titleTe.includes('స్వాతంత్ర్య') && !desc.includes('independence');
-          });
-
-          // Map stored events by ID
-          const storedMap = new Map(cleanParsed.map(e => [e.id, e]));
-
-          // Replace default events with any stored edits, excluding deleted ones
-          const mergedInitial = INITIAL_EVENTS
-            .filter(initEvt => !deletedIds.has(initEvt.id))
-            .map(initEvt => {
-              return storedMap.has(initEvt.id) ? storedMap.get(initEvt.id) : initEvt;
-            });
-
-          // Keep newly created custom events (whose ID is not in INITIAL_EVENTS)
-          const initIds = new Set(INITIAL_EVENTS.map(e => e.id));
-          const newCustomEvents = cleanParsed.filter(e => !initIds.has(e.id));
-
-          return [...mergedInitial, ...newCustomEvents];
+          return mergeEvents(INITIAL_EVENTS,parsed,deletedIds);
         }
       }
       return INITIAL_EVENTS.filter(initEvt => !deletedIds.has(initEvt.id));
@@ -109,13 +60,7 @@ export default function App() {
     }
   });
 
-  useEffect(() => {
-    try {
-      localStorage.setItem('tirumala_custom_events_v5', JSON.stringify(eventsList));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [eventsList]);
+ useEffect(() => { saveStoredEvents(eventsList);}, [eventsList]);
 
   // Auto-Pull Events from Cloud Database on Mount if Cloud Configured
   useEffect(() => {
@@ -327,21 +272,34 @@ export default function App() {
     });
   };
 
-  const handleDeleteEvent = (eventId) => {
-    setEventsList(prev => {
-      const next = prev.filter(e => e.id !== eventId);
-      pushEventsToCloud(next).catch(err => console.warn('Auto cloud sync warning:', err));
-      return next;
-    });
-    try {
-      const deletedStored = localStorage.getItem('tirumala_deleted_event_ids_v1');
-      const deletedIds = new Set(deletedStored ? JSON.parse(deletedStored) : []);
-      deletedIds.add(eventId);
-      localStorage.setItem('tirumala_deleted_event_ids_v1', JSON.stringify([...deletedIds]));
-    } catch (e) {
-      console.error('Error saving deleted event ID:', e);
+const handleDeleteEvent = async (eventId) => {
+  console.log("Delete button pressed:", eventId);
+
+  setEventsList(prev =>
+    prev.filter(e => e.id !== eventId)
+  );
+
+  try {
+
+    const deletedIds = loadDeletedEventIds();
+
+    deletedIds.add(eventId);
+
+    saveDeletedEventIds(deletedIds);
+
+    const result = await deleteEventFromCloud(eventId);
+console.log("deleteEventFromCloud called", eventId);
+    if (!result.success) {
+      console.warn(result.message);
+    } else {
+      console.log("Deleted from cloud:", eventId);
     }
-  };
+
+  } catch (err) {
+    console.error(err);
+  }
+
+};
 
   const handleOpenEditModalForEvent = (event) => {
     setTargetEventToEdit(event);
@@ -419,7 +377,7 @@ export default function App() {
 
             {/* Logout Admin */}
             <button
-              onClick={() => setIsAdminLoggedIn(false)}
+              onClick={logout}
               className="px-2.5 py-1 rounded bg-black/50 text-white hover:bg-black/70 font-bold flex items-center gap-1"
             >
               <LogOut className="w-3.5 h-3.5" />
