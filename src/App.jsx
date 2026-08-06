@@ -1,3 +1,4 @@
+import { pullGlossaryFromCloud,saveGlossaryTermToCloud } from "./utils/glossaryCloud";
 import useEvents from "./hooks/useEvents";
 import {loadStoredEvents,saveStoredEvents,loadDeletedEventIds,saveDeletedEventIds,} from "./utils/eventStorage";
 import { mergeEvents } from "./utils/eventMerge";
@@ -20,6 +21,7 @@ import UtsavamGlossary from './components/UtsavamGlossary';
 import { INITIAL_EVENTS } from './data/templeEvents';
 import {pullEventsFromCloud,pushEventsToCloud,deleteEventFromCloud} from "./utils/cloudSync";
 import { ShieldCheck, LogOut, Edit2, X, ExternalLink, MessageSquare, Plus, Cloud, Lock } from 'lucide-react';
+
 
 export default function App() {
   // Tab state: 'calendar-page', 'overview', 'temples', 'references', 'sevas', 'feedback'
@@ -217,18 +219,81 @@ if (
       return {};
     }
   });
+    
+  useEffect(() => {
+  let cancelled = false;
 
-  const handleSaveGlossaryEdit = (termId, updatedData) => {
+  async function syncGlossaryFromCloud() {
+    const result = await pullGlossaryFromCloud();
+
+    if (
+      !result.success ||
+      !Array.isArray(result.glossary)
+    ) {
+      return;
+    }
+
+    const edits = {};
+
+    for (const term of result.glossary) {
+      edits[term.id] = term;
+    }
+
+    if (cancelled) return;
+
     setCustomGlossaryEdits(prev => {
-      const next = { ...prev, [termId]: updatedData };
-      try {
-        localStorage.setItem('tirumala_custom_glossary_edits', JSON.stringify(next));
-      } catch (e) {
-        console.error(e);
-      }
-      return next;
+      const merged = {
+        ...edits,
+        ...prev
+      };
+
+      localStorage.setItem(
+        "tirumala_custom_glossary_edits",
+        JSON.stringify(merged)
+      );
+
+      return merged;
     });
+  }
+
+  syncGlossaryFromCloud();
+
+  return () => {
+    cancelled = true;
   };
+}, []);
+
+
+const handleSaveGlossaryEdit = async (termId, updatedData) => {
+  setCustomGlossaryEdits(prev => {
+    const next = {
+      ...prev,
+      [termId]: updatedData
+    };
+
+    try {
+      localStorage.setItem(
+        "tirumala_custom_glossary_edits",
+        JSON.stringify(next)
+      );
+    } catch (e) {
+      console.error(e);
+    }
+
+    return next;
+  });
+
+  const result = await saveGlossaryTermToCloud({
+    id: termId,
+    ...updatedData
+  });
+
+  if (!result.success) {
+    console.warn("Glossary cloud sync failed:", result.message);
+  } else {
+    console.log("✅ Glossary synced to cloud");
+  }
+};
 
   // Direct Glossary Navigation State
   const [targetGlossaryTermId, setTargetGlossaryTermId] = useState(null);

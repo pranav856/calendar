@@ -2,27 +2,14 @@
  * Cloud Database Sync Utility for Tirumala Utsavam Portal
  * Supports cloud backend configuration (Supabase / REST API) with offline localStorage fallback.
  */
-
+import { CLOUD_CONFIG } from "../config/cloudConfig";
 import { STORAGE_KEYS } from "../config/storageKeys";
 
 const STORAGE_KEY_CONFIG = STORAGE_KEYS.CLOUD_CONFIG;
 const STORAGE_KEY_LAST_SYNC = STORAGE_KEYS.CLOUD_LAST_SYNC;
 
 export function getCloudConfig() {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY_CONFIG);
-    if (stored) {
-      return JSON.parse(stored);
-    }
-  } catch (e) {
-    console.error('Error loading cloud config:', e);
-  }
-  return {
-    endpointUrl: 'https://rjdltvopbejhvbheindb.supabase.co/rest/v1',
-    apiKey: '',
-    autoSync: true,
-    provider: 'supabase_rest' // 'supabase_rest' | 'custom_api'
-  };
+  return CLOUD_CONFIG;
 }
 
 export function saveCloudConfig(config) {
@@ -268,7 +255,8 @@ if (
   config.apiKey.trim() === ""
 ) {
   return {
-    success: false,
+    success: true,
+    events: [],
     message: "Cloud Sync not configured.",
   };
 }

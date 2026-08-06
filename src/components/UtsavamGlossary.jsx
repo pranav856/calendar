@@ -1,3 +1,4 @@
+import useGlossary from "../hooks/useGlossary";
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { GLOSSARY_CATEGORIES, UTSAVA_GLOSSARY_TERMS } from '../data/utsavaGlossary';
 import { Search, BookOpen, Sparkles, HelpCircle, Info, ChevronDown, ChevronUp, Image as ImageIcon, X, ChevronLeft, ChevronRight, Edit3 } from 'lucide-react';
@@ -35,33 +36,7 @@ export default function UtsavamGlossary({
   };
 
   // Merge default terms with Admin custom edits
-  const allTermsList = useMemo(() => {
-    if (!Array.isArray(UTSAVA_GLOSSARY_TERMS)) return [];
-    const safeEdits = (customGlossaryEdits && typeof customGlossaryEdits === 'object') ? customGlossaryEdits : {};
-    
-    return UTSAVA_GLOSSARY_TERMS.map(defaultTerm => {
-      if (!defaultTerm) return null;
-      const customEdit = safeEdits[defaultTerm.id];
-      if (customEdit) {
-        const customParsed = parseImagesList(customEdit.images);
-        const defaultParsed = parseImagesList(defaultTerm.images);
-        return {
-          ...defaultTerm,
-          term: customEdit.term || defaultTerm.term || '',
-          termTe: customEdit.termTe || defaultTerm.termTe || '',
-          shortDesc: customEdit.shortDesc || defaultTerm.shortDesc || '',
-          shortDescTe: customEdit.shortDescTe || defaultTerm.shortDescTe || '',
-          detailedMeaning: customEdit.detailedMeaning || defaultTerm.detailedMeaning || '',
-          detailedMeaningTe: customEdit.detailedMeaningTe || defaultTerm.detailedMeaningTe || '',
-          images: customParsed.length > 0 ? customParsed : defaultParsed
-        };
-      }
-      return {
-        ...defaultTerm,
-        images: parseImagesList(defaultTerm.images)
-      };
-    }).filter(Boolean);
-  }, [customGlossaryEdits]);
+ const allTermsList = useGlossary(customGlossaryEdits);
 
   // Featured Word of the Day
   const featuredTerm = useMemo(() => {
@@ -325,7 +300,7 @@ export default function UtsavamGlossary({
                       )}
 
                       <span className="text-[10px] px-2 py-1 rounded-lg bg-amber-500/10 dark:bg-[#D4AF37]/20 border border-amber-600/30 dark:border-[#D4AF37]/40 text-amber-800 dark:text-[#FFD700] font-extrabold uppercase">
-                        {item.category.replace('_', ' ')}
+                        {(item.category || "general").replace("_", " ")}
                       </span>
                     </div>
                   </div>
