@@ -1,3 +1,4 @@
+import useEvents from "./hooks/useEvents";
 import {loadStoredEvents,saveStoredEvents,loadDeletedEventIds,saveDeletedEventIds,} from "./utils/eventStorage";
 import { mergeEvents } from "./utils/eventMerge";
 import useAdmin from "./hooks/useAdmin";
