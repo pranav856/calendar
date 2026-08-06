@@ -107,7 +107,7 @@ export async function pushEventsToCloud(events) {
           'Content-Type': 'application/json',
           'apikey': apiKey,
           'Authorization': apiKey ? `Bearer ${apiKey}` : '',
-          'Prefer': 'resolution=merge-duplicates,return=minimal'
+          'Prefer': 'resolution=merge-duplicates,return=representation'
         },
         body: payload
       });
@@ -121,7 +121,7 @@ export async function pushEventsToCloud(events) {
             'Content-Type': 'application/json',
             'apikey': apiKey,
             'Authorization': apiKey ? `Bearer ${apiKey}` : '',
-            'Prefer': 'return=minimal'
+            'Prefer': 'return=representation'
           },
           body: payload
         });
@@ -146,6 +146,16 @@ export async function pushEventsToCloud(events) {
           throw new Error(`Supabase Permission Denied (HTTP ${response.status}): ${responseErrText || 'Check API Key & RLS Policies in Supabase'}`);
         }
         throw new Error(`Supabase (HTTP ${response.status}): ${responseErrText || response.statusText}`);
+      }
+
+      // Check if rows were actually updated/inserted (or blocked by RLS)
+      try {
+        const returnedData = await response.json();
+        if (Array.isArray(returnedData) && returnedData.length === 0) {
+          throw new Error(`Supabase RLS Policy blocked the update (0 rows written). Please run the RLS SQL script in Supabase!`);
+        }
+      } catch (e) {
+        if (e.message.includes('RLS Policy blocked')) throw e;
       }
 
       const syncTime = updateLastSyncTimestamp();
