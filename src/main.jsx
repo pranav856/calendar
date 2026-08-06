@@ -27,7 +27,7 @@ class ErrorBoundary extends React.Component {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyInContent: 'center',
+          justifyContent: 'center',
           padding: '20px',
           textAlign: 'center',
           fontFamily: 'sans-serif'
