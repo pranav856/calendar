@@ -19,6 +19,21 @@ export default function UtsavamGlossary({
 
   const termRefs = useRef({});
 
+  // Helper function to parse images into standard objects
+  const parseImagesList = (rawImgs) => {
+    if (!Array.isArray(rawImgs)) return [];
+    return rawImgs.map(img => {
+      if (!img) return null;
+      if (typeof img === 'string' && img.trim() !== '') {
+        return { url: img.trim(), caption: '' };
+      }
+      if (typeof img === 'object' && img.url && typeof img.url === 'string' && img.url.trim() !== '') {
+        return { url: img.url.trim(), caption: img.caption || '' };
+      }
+      return null;
+    }).filter(Boolean);
+  };
+
   // Merge default terms with Admin custom edits
   const allTermsList = useMemo(() => {
     if (!Array.isArray(UTSAVA_GLOSSARY_TERMS)) return [];
@@ -28,6 +43,8 @@ export default function UtsavamGlossary({
       if (!defaultTerm) return null;
       const customEdit = safeEdits[defaultTerm.id];
       if (customEdit) {
+        const customParsed = parseImagesList(customEdit.images);
+        const defaultParsed = parseImagesList(defaultTerm.images);
         return {
           ...defaultTerm,
           term: customEdit.term || defaultTerm.term || '',
@@ -36,14 +53,12 @@ export default function UtsavamGlossary({
           shortDescTe: customEdit.shortDescTe || defaultTerm.shortDescTe || '',
           detailedMeaning: customEdit.detailedMeaning || defaultTerm.detailedMeaning || '',
           detailedMeaningTe: customEdit.detailedMeaningTe || defaultTerm.detailedMeaningTe || '',
-          images: (Array.isArray(customEdit.images) && customEdit.images.length > 0)
-            ? customEdit.images.filter(img => img && img.url) 
-            : (Array.isArray(defaultTerm.images) ? defaultTerm.images.filter(img => img && img.url) : [])
+          images: customParsed.length > 0 ? customParsed : defaultParsed
         };
       }
       return {
         ...defaultTerm,
-        images: Array.isArray(defaultTerm.images) ? defaultTerm.images.filter(img => img && img.url) : []
+        images: parseImagesList(defaultTerm.images)
       };
     }).filter(Boolean);
   }, [customGlossaryEdits]);

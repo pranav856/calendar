@@ -33,6 +33,16 @@ export default function AdminPortalModal({
   // YouTube Live Form State
   const [youtubeInput, setYoutubeInput] = useState(ttdLiveUrl || '');
 
+  const getInitialGlossaryImages = (term) => {
+    if (term && term.images && Array.isArray(term.images) && term.images.length > 0) {
+      const mapped = term.images
+        .map(img => typeof img === 'string' ? { url: img, caption: '' } : { url: img?.url || '', caption: img?.caption || '' })
+        .filter(img => img.url && img.url.trim() !== '');
+      if (mapped.length > 0) return mapped;
+    }
+    return [{ url: '', caption: '' }];
+  };
+
   // Glossary Form State
   const [glossaryForm, setGlossaryForm] = useState({
     id: targetGlossaryTerm?.id || '',
@@ -42,9 +52,7 @@ export default function AdminPortalModal({
     shortDescTe: targetGlossaryTerm?.shortDescTe || '',
     detailedMeaning: targetGlossaryTerm?.detailedMeaning || '',
     detailedMeaningTe: targetGlossaryTerm?.detailedMeaningTe || '',
-    images: targetGlossaryTerm?.images && Array.isArray(targetGlossaryTerm.images)
-      ? targetGlossaryTerm.images.map(img => typeof img === 'string' ? { url: img, caption: '' } : { url: img.url || '', caption: img.caption || '' })
-      : []
+    images: getInitialGlossaryImages(targetGlossaryTerm)
   });
 
   useEffect(() => {
@@ -57,9 +65,7 @@ export default function AdminPortalModal({
         shortDescTe: targetGlossaryTerm.shortDescTe || '',
         detailedMeaning: targetGlossaryTerm.detailedMeaning || '',
         detailedMeaningTe: targetGlossaryTerm.detailedMeaningTe || '',
-        images: targetGlossaryTerm.images && Array.isArray(targetGlossaryTerm.images)
-          ? targetGlossaryTerm.images.map(img => typeof img === 'string' ? { url: img, caption: '' } : { url: img.url || '', caption: img.caption || '' })
-          : []
+        images: getInitialGlossaryImages(targetGlossaryTerm)
       });
     }
   }, [targetGlossaryTerm]);
@@ -960,14 +966,16 @@ ALTER TABLE public.events DISABLE ROW LEVEL SECURITY;`;
                                       const finalUrl = (storageRes.success && storageRes.publicUrl)
                                         ? storageRes.publicUrl
                                         : await compressImageFile(file);
-                                      const updated = [...glossaryForm.images];
-                                      updated[idx].url = finalUrl;
+                                      const updated = [...(glossaryForm.images || [])];
+                                      if (!updated[idx]) updated[idx] = { url: '', caption: '' };
+                                      updated[idx] = { ...updated[idx], url: finalUrl };
                                       setGlossaryForm({ ...glossaryForm, images: updated });
                                     } catch (err) {
                                       console.error(err);
                                       const compressedDataUrl = await compressImageFile(file);
-                                      const updated = [...glossaryForm.images];
-                                      updated[idx].url = compressedDataUrl;
+                                      const updated = [...(glossaryForm.images || [])];
+                                      if (!updated[idx]) updated[idx] = { url: '', caption: '' };
+                                      updated[idx] = { ...updated[idx], url: compressedDataUrl };
                                       setGlossaryForm({ ...glossaryForm, images: updated });
                                     }
                                   }
