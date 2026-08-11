@@ -734,9 +734,9 @@ console.log("deleteEventFromCloud called", eventId);
               }}
             />
             <div>
-              <h4 className="font-serif text-base font-bold gold-gradient-text">
+              <p className="font-serif text-base font-bold gold-gradient-text">
                 The Tirumala Verse
-              </h4>
+              </p>
               <p className="text-xs text-[#94A3B8] light-theme:text-slate-600 font-medium">
                 {lang === 'en'
                   ? 'Your Independent Guide to Tirumala'
