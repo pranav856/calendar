@@ -183,9 +183,9 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
             <CalendarIcon className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-serif text-xl sm:text-3xl font-extrabold gold-gradient-text">
+            <h2 className="font-serif text-xl sm:text-3xl font-extrabold gold-gradient-text">
               {lang === 'en' ? activeMonth.label : activeMonth.labelTe}
-            </h3>
+            </h2>
             <p className="text-[10px] sm:text-[11px] text-[#94A3B8]">
               {lang === 'en' ? '👈 Swipe or drag left/right or use arrow keys 👉' : 'పక్కకు జరపండి లేదా బాణం గుర్తును నొక్కండి'}
             </p>
