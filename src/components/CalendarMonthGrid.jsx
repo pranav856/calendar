@@ -196,11 +196,16 @@ export default function CalendarMonthGrid({ events, lang, onSelectEvent, selecte
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 w-full sm:w-auto justify-between sm:justify-end">
           
           {/* Direct Month Select Dropdown */}
-          <select
-            value={activeMonthIndex}
-            onChange={(e) => setActiveMonthIndex(Number(e.target.value))}
-            className="flex-1 sm:flex-initial min-w-[130px] px-2.5 py-2 rounded-xl bg-[#141923] border border-[#D4AF37]/60 text-[#FFD700] text-xs font-extrabold focus:outline-none focus:ring-2 focus:ring-[#FFD700]"
-          >
+          <label htmlFor="calendar-month-select" className="sr-only">
+  {lang === 'en' ? 'Select month' : 'నెలను ఎంచుకోండి'}
+</label>
+
+<select
+  id="calendar-month-select"
+  value={activeMonthIndex}
+  onChange={(e) => setActiveMonthIndex(Number(e.target.value))}
+  className="flex-1 sm:flex-initial min-w-[130px] px-2.5 py-2 rounded-xl bg-[#141923] border border-[#D4AF37]/60 text-[#FFD700] text-xs font-extrabold focus:outline-none focus:ring-2 focus:ring-[#FFD700]"
+>
             {MONTHS_LIST.map((m, idx) => (
               <option key={idx} value={idx}>
                 {lang === 'en' ? m.label : m.labelTe}
