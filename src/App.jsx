@@ -329,8 +329,8 @@ const handleSaveGlossaryEdit = async (termId, updatedData) => {
       if (lastNotifiedDate !== todayStr) {
         new Notification('🌸 Today Tirumala Utsavam Alert!', {
           body: `${todayEvent.title} is taking place today at Tirumala Tirupati temples! Tap to view details.`,
-          icon: '/logo.png',
-          badge: '/logo.png'
+          icon: '/logo-64.png',
+          badge: '/logo-64.png'
         });
         localStorage.setItem('tirumala_last_notified_date', todayStr);
       }
@@ -706,7 +706,7 @@ console.log("deleteEventFromCloud called", eventId);
 
             <div className="w-48 h-48 mx-auto rounded-full overflow-hidden border-4 border-[#FFD700] bg-[#E65100] p-2 shadow-2xl flex items-center justify-center">
               <img 
-                src="/logo.png" 
+                src="/logo-192.png" 
                 alt="Tirumala Gopuram Logo" 
                 className="w-full h-full object-contain"
                 onError={(e) => {
@@ -729,15 +729,11 @@ console.log("deleteEventFromCloud called", eventId);
         <div className="container flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
           <div className="flex items-center gap-3">
             <img 
-              src="/logo.png" 
-              alt="Tirumala Logo" 
-              className="w-10 h-10 rounded-full border-2 border-[#FFD700] cursor-pointer hover:scale-110 transition-transform shadow-md" 
-              onClick={() => setIsLogoModalOpen(true)}
-              onError={(e) => {
-                if (e.target.src.endsWith('/logo.png')) e.target.src = '/logo.jpg';
-                else if (e.target.src.endsWith('/logo.jpg')) e.target.src = '/logo.svg';
-              }}
-            />
+  src="/logo-64.png" 
+  alt="The Tirumala Verse logo"
+  className="w-10 h-10 rounded-full border-2 border-[#FFD700] cursor-pointer hover:scale-110 transition-transform shadow-md" 
+  onClick={() => setIsLogoModalOpen(true)}
+/>
             <div>
               <p className="font-serif text-base font-bold gold-gradient-text">
                 The Tirumala Verse

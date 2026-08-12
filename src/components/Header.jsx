@@ -88,14 +88,10 @@ export default function Header({
               title="Click to view Logo in full size"
             >
               <img 
-                src="/logo.png" 
+                src="/logo-64.png" 
                 alt="Tirumala Logo" 
                 className="w-full h-full object-contain p-0.5" 
                 style={{ width: '36px', height: '36px' }}
-                onError={(e) => {
-                  if (e.target.src.endsWith('/logo.png')) e.target.src = '/logo.jpg';
-                  else if (e.target.src.endsWith('/logo.jpg')) e.target.src = '/logo.svg';
-                }}
               />
             </div>
 
