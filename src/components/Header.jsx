@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Compass, Clock as ClockIcon, MessageSquare, Globe, Lock, Sun, Moon, BookOpen, ExternalLink } from 'lucide-react';
+import {
+  Clock as ClockIcon,
+  MessageSquare,
+  Globe,
+  Lock,
+  Sun,
+  Moon,
+  BookOpen
+} from 'lucide-react';
 
 export default function Header({ 
   activeTab, 
@@ -16,9 +24,6 @@ export default function Header({
   ttdLiveUrl,
   onOpenLiveStream
 }) {
-  // Live IST 24-Hour Clock State
-  const [istTime, setIstTime] = useState('');
-  const [istDate, setIstDate] = useState('');
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
 
@@ -51,27 +56,6 @@ export default function Header({
       });
     }
   };
-
-  useEffect(() => {
-    const updateClock = () => {
-      const now = new Date();
-      const hours = now.getHours().toString().padStart(2, '0');
-      const minutes = now.getMinutes().toString().padStart(2, '0');
-      const seconds = now.getSeconds().toString().padStart(2, '0');
-      
-      const day = now.getDate().toString().padStart(2, '0');
-      const month = (now.getMonth() + 1).toString().padStart(2, '0');
-      const year = now.getFullYear();
-
-      setIstTime(`${hours}:${minutes}:${seconds}`);
-      setIstDate(`${day}-${month}-${year}`);
-    };
-
-    updateClock();
-    const interval = setInterval(updateClock, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <header className="sticky top-0 z-50 bg-[#0B0E14]/95 border-b border-[#D4AF37]/30 shadow-2xl transition-colors">
       

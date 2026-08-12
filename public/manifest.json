@@ -4,8 +4,8 @@
   "description": "Your independent guide to Tirumala - Official 2026-27 TTD Panchangam events, Brahmotsavams, Vahana Sevas, and daily rituals across Tirumala & Tirupati temples.",
   "icons": [
   {
-    "src": "/logo-192.png",
-    "sizes": "192x192",
+    "src": "/logo-64.png",
+    "sizes": "64x64",
     "type": "image/png"
   },
   {

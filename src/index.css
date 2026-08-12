@@ -1,3 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --color-gold: #D4AF37;
+  --color-gold-bright: #FFD700;
+  --color-gold-light: #FFF0AD;
+
+  --color-saffron: #FF5722;
+  --color-crimson: #990000;
+
+  --color-darkbg: #0B0E14;
+  --color-cardbg: #141923;
+
+  --font-serif: 'Cinzel', serif;
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-telugu: 'Rozha One', sans-serif;
+}
+
 :root {
   --bg-main: #0B0E14;
   --bg-card: rgba(20, 25, 35, 0.85);
