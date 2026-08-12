@@ -1,30 +1,41 @@
 // Helper utility to calculate live event status based on current IST date
 export function getEventStatus(startDate, endDate) {
   const now = new Date();
-  const todayStr = now.toISOString().split('T')[0];
+
+  // Get today's date in India (IST / Asia-Kolkata)
+  const todayStr = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now);
 
   if (todayStr >= startDate && todayStr <= endDate) {
     return {
       status: 'LIVE NOW',
       statusTe: '🔴 ప్రత్యక్ష సేవ / ప్రసారం',
-      colorClass: 'bg-red-600 text-white font-extrabold animate-pulse shadow-lg ring-2 ring-red-400',
-      bgCardBorder: 'border-red-500/80 shadow-[0_0_20px_rgba(239,68,68,0.3)]'
+      colorClass:
+        'bg-red-600 text-white font-extrabold animate-pulse shadow-lg ring-2 ring-red-400',
+      bgCardBorder:
+        'border-red-500/80 shadow-[0_0_20px_rgba(239,68,68,0.3)]',
     };
-  } else if (todayStr < startDate) {
+  }
+
+  if (todayStr < startDate) {
     return {
       status: 'UPCOMING',
       statusTe: 'రాబోయే ఉత్సవం',
       colorClass: 'bg-[#FF5722] text-white',
-      bgCardBorder: 'border-[#D4AF37]/30'
-    };
-  } else {
-    return {
-      status: 'COMPLETED',
-      statusTe: 'పూర్తయినది',
-      colorClass: 'bg-[#94A3B8]/30 text-[#94A3B8]',
-      bgCardBorder: 'border-white/10'
+      bgCardBorder: 'border-[#D4AF37]/30',
     };
   }
+
+  return {
+    status: 'COMPLETED',
+    statusTe: 'పూర్తయినది',
+    colorClass: 'bg-[#94A3B8]/30 text-[#94A3B8]',
+    bgCardBorder: 'border-white/10',
+  };
 }
 
 // Open Google Calendar Event Creation URL directly
@@ -36,11 +47,12 @@ export function openGoogleCalendar(event) {
   const start = (event.startDate || '').replace(/-/g, '');
   let end = (event.endDate || event.startDate || '').replace(/-/g, '');
   
-  if (start === end) {
-    const sDate = new Date(event.startDate);
-    sDate.setDate(sDate.getDate() + 1);
-    end = sDate.toISOString().split('T')[0].replace(/-/g, '');
-  }
+ if (start === end) {
+  const [year, month, day] = event.startDate.split('-').map(Number);
+  const sDate = new Date(Date.UTC(year, month - 1, day + 1));
+
+  end = sDate.toISOString().split('T')[0].replace(/-/g, '');
+}
 
   const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${description}&location=${location}`;
   window.open(googleUrl, '_blank');

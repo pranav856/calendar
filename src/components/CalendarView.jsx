@@ -234,13 +234,23 @@ export default function CalendarView({
         <div className="space-y-4">
           <div className="flex items-center justify-between text-xs text-[#94A3B8]">
             <span>
-              {lang === 'en'
-                ? `Showing ${filteredEvents.length} events`
-                : `${filteredEvents.length} ఉత్సవాలు కనిపించాయి`}
-            </span>
+  {(() => {
+    const visibleEvents = filteredEvents.filter(evt => {
+      const status = getEventStatus(evt.startDate, evt.endDate);
+      return status.status !== 'COMPLETED';
+    });
+
+    return lang === 'en'
+      ? `Showing ${visibleEvents.length} events`
+      : `${visibleEvents.length} ఉత్సవాలు కనిపించాయి`;
+  })()}
+</span>
           </div>
 
-          {filteredEvents.length === 0 ? (
+          {filteredEvents.filter(evt => {
+  const status = getEventStatus(evt.startDate, evt.endDate);
+  return status.status !== 'COMPLETED';
+}).length === 0 ? (
             <div className="glass-card p-12 text-center text-[#94A3B8] space-y-3">
               <Calendar className="w-12 h-12 mx-auto text-[#D4AF37]/40 animate-pulse" />
               <h3 className="font-serif text-lg font-bold text-white">
@@ -254,7 +264,12 @@ export default function CalendarView({
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredEvents.map(evt => {
+              {filteredEvents
+  .filter(evt => {
+    const status = getEventStatus(evt.startDate, evt.endDate);
+    return status.status !== 'COMPLETED';
+  })
+  .map(evt => {
                 const statusObj = getEventStatus(evt.startDate, evt.endDate);
                 const templeObj = TEMPLES.find(t => t.id === evt.templeId);
 

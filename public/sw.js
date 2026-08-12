@@ -31,25 +31,61 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event - Network-first strategy for index HTML and JS bundles
+// Fetch Event
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
-  // For API / Supabase requests or HTML/JS bundles, always go Network First
+  const url = new URL(event.request.url);
+
+  // 1. Supabase/API requests → Network Only
+  // Live cloud data should never be served from the service-worker cache.
+  if (
+    url.hostname.endsWith('supabase.co') ||
+    url.pathname.startsWith('/rest/')
+  ) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // 2. HTML navigation → Network First, cache fallback
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.ok) {
+            const copy = response.clone();
+
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put('/index.html', copy);
+            });
+          }
+
+          return response;
+        })
+        .catch(() => caches.match('/index.html'))
+    );
+
+    return;
+  }
+
+  // 3. Static assets → Cache First, network fallback
   event.respondWith(
-    fetch(event.request)
-      .then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-          const responseToCache = networkResponse.clone();
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      return fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.ok) {
+          const copy = networkResponse.clone();
+
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
+            cache.put(event.request, copy);
           });
         }
+
         return networkResponse;
-      })
-      .catch(() => {
-        // Fallback to cache if offline
-        return caches.match(event.request);
-      })
+      });
+    })
   );
 });

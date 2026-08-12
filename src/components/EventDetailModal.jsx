@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import React, { useState, useMemo } from 'react';
 import { TEMPLES } from '../data/templeEvents';
 import { UTSAVA_GLOSSARY_TERMS } from '../data/utsavaGlossary';
@@ -12,6 +13,22 @@ export default function EventDetailModal({
   onEditEvent,
   onNavigateToGlossary
 }) {
+
+    useEffect(() => {
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      onClose();
+    }
+  };
+
+  document.addEventListener('keydown', handleKeyDown);
+
+  return () => {
+    document.removeEventListener('keydown', handleKeyDown);
+  };
+}, [onClose]);
+
+
   if (!event) return null;
 
   const temple = TEMPLES.find(t => t.id === event.templeId);
@@ -73,13 +90,11 @@ export default function EventDetailModal({
     allImages.push({ url: normalizeImageUrl(String(event.imageUrl).trim()), caption: event.title || '' });
   }
 
-  const activeImage = allImages[activeImgIndex] || allImages[0] || null;
-
+  const activeImage = allImages[activeImgIndex] || allImages[0] 
   const handlePrevImage = (e) => {
     e.stopPropagation();
     setActiveImgIndex(prev => (prev === 0 ? allImages.length - 1 : prev - 1));
   };
-
   const handleNextImage = (e) => {
     e.stopPropagation();
     setActiveImgIndex(prev => (prev === allImages.length - 1 ? 0 : prev + 1));
@@ -324,12 +339,35 @@ export default function EventDetailModal({
               </button>
 
               {isShareMenuOpen && (
-                <div className="absolute right-0 bottom-12 w-52 bg-[#0B0E14] border-2 border-[#FFD700] rounded-xl shadow-2xl p-2 space-y-1 z-50 animate-scale-up">
+                <div className="
+  absolute right-0 bottom-12
+  w-60
+  bg-[#141923]
+  light-theme:bg-white
+  border-2 border-[#FFD700]
+  light-theme:border-[#D4AF37]
+  rounded-2xl
+  shadow-2xl
+  p-2
+  space-y-1
+  z-50
+  animate-scale-up
+">
                   
                   {/* WHATSAPP */}
                   <button
                     onClick={() => handleShareClick('whatsapp')}
-                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs font-bold text-white flex items-center gap-2.5 transition-colors"
+                    className="
+  w-full text-left px-3 py-2.5 rounded-xl
+  hover:bg-green-50
+  light-theme:hover:bg-green-50
+  hover:bg-white/10
+  text-[#166534]
+  light-theme:text-[#166534]
+  text-xs font-bold
+  flex items-center gap-2.5
+  transition-colors
+"
                   >
                     <svg className="w-4 h-4 text-[#25D366] shrink-0" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-1.149 4.194 4.306-1.129z"/>
@@ -337,15 +375,33 @@ export default function EventDetailModal({
                     <span style={{ color: '#25D366' }}>WhatsApp</span>
                   </button>
 
-                  {/* TWITTER / X */}
+                  {/* X(TWITTER)  */}
                   <button
                     onClick={() => handleShareClick('x')}
-                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs font-bold text-white flex items-center gap-2.5 transition-colors"
+                    className="
+  w-full text-left px-3 py-2.5 rounded-xl
+  hover:bg-slate-100
+  light-theme:hover:bg-slate-100
+  text-[#111827]
+  text-xs font-bold
+  flex items-center gap-2.5
+  transition-colors
+"
                   >
-                    <svg className="w-4 h-4 text-white shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                    </svg>
-                    <span style={{ color: '#FFFFFF' }}>Twitter / X</span>
+                   <svg
+  className="w-4 h-4 shrink-0"
+  viewBox="0 0 24 24"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M18.244 2.25H21.5L14.39 10.37L22.75 21.75H16.2L11.07 14.85L5.17 21.75H1.91L9.52 13.05L1.5 2.25H8.22L12.86 8.55L18.244 2.25ZM17.1 19.75H18.9L7.24 4.15H5.31L17.1 19.75Z"
+    fill="currentColor"
+  />
+</svg>
+                    <span className="text-[#111827] font-bold">
+  X (Twitter)
+</span>
                   </button>
 
                   {/* FACEBOOK */}
@@ -356,7 +412,9 @@ export default function EventDetailModal({
                     <svg className="w-4 h-4 text-[#1877F2] shrink-0" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                     </svg>
-                    <span style={{ color: '#1877F2' }}>Facebook</span>
+                    <span className="text-[#1877F2] font-bold">
+  Facebook
+</span>
                   </button>
 
                   {/* REDDIT */}
@@ -367,7 +425,9 @@ export default function EventDetailModal({
                     <svg className="w-4 h-4 text-[#FF4500] shrink-0" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.196-.491.956 0 1.733.777 1.733 1.734 0 .658-.363 1.222-.898 1.516.02.179.034.363.034.55 0 2.8-3.32 5.07-7.414 5.07-4.095 0-7.416-2.27-7.416-5.07 0-.18.013-.362.033-.54-.53-.294-.89-.855-.89-1.515 0-.957.777-1.734 1.734-1.734.469 0 .89.182 1.198.49 1.193-.855 2.846-1.417 4.667-1.489l.926-4.343 3.32.697a1.246 1.246 0 0 1 1.252-1.144z"/>
                     </svg>
-                    <span style={{ color: '#FF4500' }}>Reddit</span>
+                    <span className="text-[#C2410C] font-bold">
+  Reddit
+</span>
                   </button>
 
                   {/* INSTAGRAM */}
@@ -378,7 +438,9 @@ export default function EventDetailModal({
                     <svg className="w-4 h-4 text-[#E4405F] shrink-0" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
                     </svg>
-                    <span style={{ color: '#E4405F' }}>Instagram</span>
+                    <span className="text-[#C0265E] font-bold">
+  Instagram
+</span>
                   </button>
 
                   {/* THREADS */}
@@ -386,10 +448,23 @@ export default function EventDetailModal({
                     onClick={() => handleShareClick('threads')}
                     className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs font-bold text-white flex items-center gap-2.5 transition-colors"
                   >
-                    <svg className="w-4 h-4 text-[#A855F7] shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12.186 24c-3.18 0-5.83-1.026-7.876-3.048C2.264 18.932 1.25 15.932 1.25 12.05c0-3.896 1.014-6.9 3.02-8.927C6.316 1.1 8.966.074 12.146.074c3.155 0 5.805 1.026 7.876 3.049C22.068 5.15 23.082 8.15 23.082 12.03c0 3.882-1.014 6.887-3.02 8.914C18.01 22.974 15.36 24 12.186 24zm-.04-2.18c2.6 0 4.708-.8 6.26-2.378 1.552-1.577 2.328-3.953 2.328-7.127 0-3.175-.776-5.55-2.328-7.128-1.552-1.577-3.66-2.377-6.26-2.377-2.6 0-4.708.8-6.26 2.377C4.334 6.765 3.558 9.14 3.558 12.315c0 3.174.776 5.55 2.328 7.127 1.552 1.578 3.66 2.378 6.26 2.378z"/>
-                    </svg>
-                    <span style={{ color: '#A855F7' }}>Threads</span>
+                    <svg
+  className="w-4 h-4 shrink-0"
+  viewBox="0 0 24 24"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M17.2 11.1c-.2-3.1-2-5.1-5.2-5.1-3.4 0-5.4 2-5.4 5.9 0 4.2 2.1 6.5 5.8 6.5 3.2 0 5.2-1.6 5.2-4.1 0-2.3-1.7-3.7-4.4-3.7-2.2 0-3.5 1-3.5 2.5 0 1.2 1 2 2.3 2 1.2 0 2-.6 2-1.6 0-.8-.6-1.3-1.6-1.3"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  />
+</svg>
+                    <span className="text-[#111827] font-bold">
+  Threads
+</span>
                   </button>
 
                   {/* COPY LINK & TEXT */}
@@ -397,8 +472,10 @@ export default function EventDetailModal({
                     onClick={() => handleShareClick('copy')}
                     className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs font-bold text-[#FFD700] flex items-center gap-2.5 border-t border-white/10 pt-2 transition-colors"
                   >
-                    {copiedLink ? <Check className="w-4 h-4 text-green-400 shrink-0" /> : <Copy className="w-4 h-4 text-[#FFD700] shrink-0" />}
-                    <span style={{ color: '#FFD700' }}>{copiedLink ? 'Copied!' : 'Copy Link & Text'}</span>
+                    {copiedLink ? <Check className="w-4 h-4 text-green-400 shrink-0" /> : <Copy className="w-4 h-4 text-[#B45309] shrink-0" />}
+                    <span className="text-green-700 font-bold">
+  {copiedLink ? 'Copied!' : 'Copy Link & Text'}
+</span>
                   </button>
 
                 </div>

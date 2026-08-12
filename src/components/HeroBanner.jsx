@@ -4,7 +4,12 @@ import { INITIAL_EVENTS, TEMPLES } from '../data/templeEvents';
 
 export default function HeroBanner({ lang, onSelectTemple }) {
   // Dynamically find next upcoming major event from today's date
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Kolkata',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+}).format(new Date());
   const upcomingMajorEvents = INITIAL_EVENTS.filter(e => (e.isMajor || e.highlight) && e.startDate >= todayStr);
   const majorEvent = upcomingMajorEvents.length > 0 ? upcomingMajorEvents[0] : (INITIAL_EVENTS.find(e => e.isMajor) || INITIAL_EVENTS[0]);
 

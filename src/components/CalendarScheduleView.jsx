@@ -50,7 +50,12 @@ export default function CalendarScheduleView({
     }
   };
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Kolkata',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+}).format(new Date());
 
   // Sort events chronologically by start date
   const sortedEvents = [...events].sort((a, b) => a.startDate.localeCompare(b.startDate));

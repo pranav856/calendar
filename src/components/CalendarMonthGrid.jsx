@@ -321,7 +321,12 @@ function MonthGridCard({ monthObj, events, lang, onSelectEvent }) {
     const monthStr = (month + 1).toString().padStart(2, '0');
     const dateStr = `${year}-${monthStr}-${dayStr}`;
 
-    const isToday = dateStr === new Date().toISOString().split('T')[0];
+    const isToday = dateStr === new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Kolkata',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+}).format(new Date());
 
     // Find event on this day that has pictures
     const eventWithImage = dayEvents.find(e => (e.images && e.images.length > 0 && e.images[0].url) || e.imageUrl);

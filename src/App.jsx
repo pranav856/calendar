@@ -310,7 +310,12 @@ const handleSaveGlossaryEdit = async (termId, updatedData) => {
   };
 
   // Detect Today's Active Event for Rolling Ticker
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Kolkata',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+}).format(new Date());
   const safeEventsList = Array.isArray(eventsList) ? eventsList : INITIAL_EVENTS;
   const todayEvent = useMemo(() => {
     if (!Array.isArray(safeEventsList)) return null;

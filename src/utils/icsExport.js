@@ -12,9 +12,9 @@ export function downloadIcsFile(event) {
 
   const startDateStr = formatIcsDate(event.startDate);
   // Add 1 day for end date in ICS format all-day
-  const end = new Date(event.endDate);
-  end.setDate(end.getDate() + 1);
-  const endDateStr = end.toISOString().split('T')[0].replace(/-/g, '');
+const [year, month, day] = event.endDate.split('-').map(Number);
+const end = new Date(Date.UTC(year, month - 1, day + 1));
+const endDateStr = end.toISOString().split('T')[0].replace(/-/g, '');
 
   const icsContent = [
     'BEGIN:VCALENDAR',
