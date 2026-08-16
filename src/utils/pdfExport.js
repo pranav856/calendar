@@ -1,5 +1,3 @@
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { TEMPLES } from '../data/templeEvents';
 import { getEventStatus } from './eventStatus';
 
@@ -11,8 +9,18 @@ import { getEventStatus } from './eventStatus';
  * @param {string} options.selectedTemple - 'all' or temple ID
  * @param {string} options.lang - 'en' or 'te'
  */
-export function exportPanchangamPdf({ events = [], selectedMonth = 'all', selectedTemple = 'all', lang = 'en' }) {
+  export async function exportPanchangamPdf({
+  events = [],
+  selectedMonth = 'all',
+  selectedTemple = 'all',
+  lang = 'en'
+}) {
   try {
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable')
+    ]);
+
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',

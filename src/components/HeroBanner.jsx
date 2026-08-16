@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Calendar as CalendarIcon, Clock, MapPin } from 'lucide-react';
-import { INITIAL_EVENTS, TEMPLES } from '../data/templeEvents';
+import { TEMPLES } from '../data/templeEvents';
 
-export default function HeroBanner({ lang, onSelectTemple }) {
+export default function HeroBanner({ lang, onSelectTemple, events = [] }) {
   // Dynamically find next upcoming major event from today's date
   const todayStr = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'Asia/Kolkata',
@@ -10,9 +10,14 @@ export default function HeroBanner({ lang, onSelectTemple }) {
   month: '2-digit',
   day: '2-digit',
 }).format(new Date());
-  const upcomingMajorEvents = INITIAL_EVENTS.filter(e => (e.isMajor || e.highlight) && e.startDate >= todayStr);
-  const majorEvent = upcomingMajorEvents.length > 0 ? upcomingMajorEvents[0] : (INITIAL_EVENTS.find(e => e.isMajor) || INITIAL_EVENTS[0]);
+ const upcomingMajorEvents = events.filter(
+  e => (e.isMajor || e.highlight) && e.startDate >= todayStr
+);
 
+const majorEvent =
+  upcomingMajorEvents.length > 0
+    ? upcomingMajorEvents[0]
+    : (events.find(e => e.isMajor) || events[0]);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {

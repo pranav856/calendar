@@ -7,20 +7,21 @@ import useTheme from "./hooks/useTheme";
 import useLocalStorage from "./hooks/usePersistentState";
 import { STORAGE_KEYS } from "./config/storageKeys";
 import { APP_CONFIG } from "./config/appConfig";
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import Header from './components/Header';
 import HeroBanner from './components/HeroBanner';
-import CalendarView from './components/CalendarView';
 import TempleList from './components/TempleList';
-import DailySchedule from './components/DailySchedule';
-import CommunityFeedback from './components/CommunityFeedback';
-import EventDetailModal from './components/EventDetailModal';
-import AdminPortalModal from './components/AdminPortalModal';
 import ReferencesList from './components/ReferencesList';
-import UtsavamGlossary from './components/UtsavamGlossary';
-import { INITIAL_EVENTS } from './data/templeEvents';
 import {pullEventsFromCloud,pushEventsToCloud,deleteEventFromCloud} from "./utils/cloudSync";
 import { ShieldCheck, LogOut, Edit2, X, ExternalLink, MessageSquare, Plus, Cloud, Lock } from 'lucide-react';
+const CalendarView = lazy(() => import('./components/CalendarView'));
+const DailySchedule = lazy(() => import('./components/DailySchedule'));
+const CommunityFeedback = lazy(() => import('./components/CommunityFeedback'));
+const UtsavamGlossary = lazy(() => import('./components/UtsavamGlossary'));
+const AdminPortalModal = lazy(() => import('./components/AdminPortalModal'));
+const EventDetailModal = lazy(() => import('./components/EventDetailModal'));
+const loadInitialEvents = () =>
+  import('./data/initialEvents').then(module => module.INITIAL_EVENTS);
 
 
 export default function App() {
@@ -43,31 +44,68 @@ const {themeMode,setThemeMode,toggleTheme,} = useTheme();
   const {isAdminLoggedIn,setIsAdminLoggedIn,login,logout,} = useAdmin();
 
   // Dynamic Events State Initializer with complete merge for edited default events & deleted tracking
-  const [eventsList, setEventsList] = useState(() => {
-    try {
-      // Load deleted event IDs
-      const deletedIds = loadDeletedEventIds();
 
-      const storedEvents = loadStoredEvents();
-      if (storedEvents) {
-        const parsed = storedEvents;
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          // Remove Independence Day events & deleted events
-          return mergeEvents(INITIAL_EVENTS,parsed,deletedIds);
-        }
+const [initialEvents, setInitialEvents] = useState(null);
+const [eventsList, setEventsList] = useState([]);
+
+useEffect(() => {
+  let cancelled = false;
+
+  loadInitialEvents()
+    .then(loadedEvents => {
+      if (!cancelled) {
+        setInitialEvents(loadedEvents);
       }
-      return INITIAL_EVENTS.filter(initEvt => !deletedIds.has(initEvt.id));
-    } catch (e) {
-      console.error('Error loading events from storage:', e);
-      return INITIAL_EVENTS;
-    }
-  });
+    })
+    .catch(err => {
+      console.error('Failed to load initial events:', err);
+    });
 
- useEffect(() => { saveStoredEvents(eventsList);}, [eventsList]);
+  return () => {
+    cancelled = true;
+  };
+}, []);
+
+useEffect(() => {
+  if (!initialEvents) return;
+
+  try {
+    const deletedIds = loadDeletedEventIds();
+    const storedEvents = loadStoredEvents();
+
+    if (storedEvents) {
+      const parsed = storedEvents;
+
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        setEventsList(
+          mergeEvents(initialEvents, parsed, deletedIds)
+        );
+        return;
+      }
+    }
+
+    setEventsList(
+      initialEvents.filter(
+        initEvt => !deletedIds.has(initEvt.id)
+      )
+    );
+  } catch (e) {
+    console.error('Error loading events from storage:', e);
+    setEventsList(initialEvents);
+  }
+}, [initialEvents]);
+
+useEffect(() => {
+  if (!initialEvents) return;
+
+  saveStoredEvents(eventsList);
+}, [eventsList, initialEvents]);
 
   // Auto-Pull Events from Cloud Database on Mount if Cloud Configured
-  useEffect(() => {
-    async function syncFromCloudOnMount() {
+useEffect(() => {
+  if (!initialEvents) return;
+
+  async function syncFromCloudOnMount() {
       try {
        const res = await pullEventsFromCloud();
 
@@ -113,7 +151,7 @@ if (
     }
 
     syncFromCloudOnMount();
-  }, []);
+}, [initialEvents]);
 
   // Defensive Community Feedback Submissions State Initializer
   const [feedbackList, setFeedbackList] = useState(() => {
@@ -316,7 +354,7 @@ const handleSaveGlossaryEdit = async (termId, updatedData) => {
   month: '2-digit',
   day: '2-digit',
 }).format(new Date());
-  const safeEventsList = Array.isArray(eventsList) ? eventsList : INITIAL_EVENTS;
+  const safeEventsList = Array.isArray(eventsList) ? eventsList : [];
   const todayEvent = useMemo(() => {
     if (!Array.isArray(safeEventsList)) return null;
     return safeEventsList.find(e => e && typeof e === 'object' && e.startDate && e.endDate && e.startDate <= todayStr && e.endDate >= todayStr);
@@ -414,6 +452,16 @@ console.log("deleteEventFromCloud called", eventId);
 
   const safeFeedbackList = Array.isArray(feedbackList) ? feedbackList : [];
   const newFeedbackCount = safeFeedbackList.filter(f => f.status === 'New').length;
+
+  if (!initialEvents) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#0B0E14]">
+      <div className="text-[#FFD700] font-serif text-lg">
+        Loading...
+      </div>
+    </div>
+  );
+}
 
   return (
     <div className="min-h-screen flex flex-col transition-colors duration-300">
@@ -536,12 +584,22 @@ console.log("deleteEventFromCloud called", eventId);
       {activeTab === 'overview' && (
         <HeroBanner
           lang={lang}
+          events={eventsList}
           onSelectTemple={handleSelectTempleFromHeroOrList}
         />
       )}
 
       {/* Main Content Area */}
       <main className="flex-grow container py-4">
+  <Suspense
+    fallback={
+      <div className="min-h-[300px] flex items-center justify-center">
+        <div className="text-[#FFD700] font-serif text-lg">
+          Loading...
+        </div>
+      </div>
+    }
+  >
         
         {/* DEDICATED FULL-PAGE CALENDAR SECTION */}
         {activeTab === 'calendar-page' && (
@@ -600,42 +658,47 @@ console.log("deleteEventFromCloud called", eventId);
             onSubmitFeedback={handleAddFeedback}
           />
         )}
+         </Suspense> 
       </main>
 
       {/* Event Detail Modal Popup */}
-      {selectedEventModal && (
-        <EventDetailModal
-          event={selectedEventModal}
-          onClose={() => setSelectedEventModal(null)}
-          lang={lang}
-          isAdminLoggedIn={isAdminLoggedIn}
-          onEditEvent={handleOpenEditModalForEvent}
-          onNavigateToGlossary={handleNavigateToGlossary}
-        />
-      )}
+   {selectedEventModal && (
+  <Suspense fallback={null}>
+    <EventDetailModal
+      event={selectedEventModal}
+      onClose={() => setSelectedEventModal(null)}
+      lang={lang}
+      isAdminLoggedIn={isAdminLoggedIn}
+      onEditEvent={handleOpenEditModalForEvent}
+      onNavigateToGlossary={handleNavigateToGlossary}
+    />
+  </Suspense>
+)}
 
       {/* Admin Quick Action Modal */}
-      {adminModalMode && (
-        <AdminPortalModal
-          mode={adminModalMode}
-          onClose={() => setAdminModalMode(null)}
-          lang={lang}
-          events={safeEventsList}
-          onAddEvent={handleAddEvent}
-          onUpdateEvent={handleUpdateEvent}
-          onDeleteEvent={handleDeleteEvent}
-          isAdminLoggedIn={isAdminLoggedIn}
-          setIsAdminLoggedIn={setIsAdminLoggedIn}
-          targetEvent={targetEventToEdit}
-          feedbackList={safeFeedbackList}
-          onUpdateFeedback={handleUpdateFeedback}
-          onDeleteFeedback={handleDeleteFeedback}
-          targetGlossaryTerm={targetGlossaryTermToEdit}
-          onSaveGlossaryEdit={handleSaveGlossaryEdit}
-          ttdLiveUrl={ttdLiveUrl}
-          onSaveTtdLiveUrl={handleSaveTtdLiveUrl}
-        />
-      )}
+     {adminModalMode && (
+  <Suspense fallback={null}>
+    <AdminPortalModal
+      mode={adminModalMode}
+      onClose={() => setAdminModalMode(null)}
+      lang={lang}
+      events={safeEventsList}
+      onAddEvent={handleAddEvent}
+      onUpdateEvent={handleUpdateEvent}
+      onDeleteEvent={handleDeleteEvent}
+      isAdminLoggedIn={isAdminLoggedIn}
+      setIsAdminLoggedIn={setIsAdminLoggedIn}
+      targetEvent={targetEventToEdit}
+      feedbackList={safeFeedbackList}
+      onUpdateFeedback={handleUpdateFeedback}
+      onDeleteFeedback={handleDeleteFeedback}
+      targetGlossaryTerm={targetGlossaryTermToEdit}
+      onSaveGlossaryEdit={handleSaveGlossaryEdit}
+      ttdLiveUrl={ttdLiveUrl}
+      onSaveTtdLiveUrl={handleSaveTtdLiveUrl}
+    />
+  </Suspense>
+)}
 
       {/* TTD YOUTUBE LIVE STREAM EMBEDDED MODAL */}
       {isLiveStreamModalOpen && ttdLiveUrl && (
@@ -709,11 +772,6 @@ console.log("deleteEventFromCloud called", eventId);
                 src="/logo-192.png" 
                 alt="Tirumala Gopuram Logo" 
                 className="w-full h-full object-contain"
-                onError={(e) => {
-                  if (e.target.src.endsWith('/logo.png')) e.target.src = '/logo.jpg';
-                  else if (e.target.src.endsWith('/logo.jpg')) e.target.src = '/logo.svg';
-                  else if (e.target.src.endsWith('/logo.svg')) e.target.src = '/logo.jpg.png';
-                }}
               />
             </div>
 
