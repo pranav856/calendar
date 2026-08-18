@@ -2,11 +2,10 @@ import AdminGlossaryEditor from "./admin/AdminGlossaryEditor";
 import AdminFeedbackInbox from "./admin/AdminFeedbackInbox";
 import AdminYoutubeSettings from "./admin/AdminYoutubeSettings";
 import AdminCloudSync from "./admin/AdminCloudSync";
+import AdminEventEditor from "./admin/AdminEventEditor";
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Edit2, Trash2, ShieldCheck, Lock, LogOut, MessageSquare, FileSpreadsheet, Search, Eye, CheckCircle, Cloud, RefreshCw, Database, Server, Image, Video, Upload } from 'lucide-react';
-import { TEMPLES } from '../data/templeEvents';
-import { getCloudConfig, saveCloudConfig, pushEventsToCloud, getLastSyncTime, uploadFileToSupabaseStorage } from '../utils/cloudSync';
-import { normalizeImageUrl, compressImageFile } from '../utils/eventStatus';
+import { X, Plus, ShieldCheck, Lock, LogOut, MessageSquare, FileSpreadsheet, Search, Eye, CheckCircle, Cloud, RefreshCw, Database, Server, Video, } from 'lucide-react';
+import { getCloudConfig, saveCloudConfig, pushEventsToCloud, getLastSyncTime } from '../utils/cloudSync';
 
 export default function AdminPortalModal({
   mode, // 'login' | 'edit-event' | 'feedback-inbox' | 'edit-glossary' | 'youtube-live'
@@ -80,15 +79,6 @@ export default function AdminPortalModal({
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
 
-  const getInitialImages = (evt) => {
-    if (evt && evt.images && Array.isArray(evt.images) && evt.images.length > 0) {
-      return evt.images.map(img => typeof img === 'string' ? { url: img, caption: '' } : { url: img.url || '', caption: img.caption || '' });
-    }
-    if (evt && evt.imageUrl) {
-      return [{ url: evt.imageUrl, caption: evt.title || '' }];
-    }
-    return [{ url: '', caption: '' }];
-  };
 
   const getTodayIST = () =>
   new Intl.DateTimeFormat('en-CA', {
@@ -97,76 +87,6 @@ export default function AdminPortalModal({
     month: '2-digit',
     day: '2-digit',
   }).format(new Date());
-
-  // Event Form State
-  const [eventForm, setEventForm] = useState({
-    title: '',
-    titleTe: '',
-    templeId: 'tirumala-main',
-    startDate: getTodayIST(),
-    endDate: getTodayIST(),
-    category: 'brahmotsavam',
-    vahanam: '',
-    description: '',
-    descriptionTe: '',
-    imageUrl: '',
-    images: [{ url: '', caption: '' }]
-  });
-
-  useEffect(() => {
-    if (targetEvent) {
-      setEventForm({
-        title: targetEvent.title || '',
-        titleTe: targetEvent.titleTe || '',
-        templeId: targetEvent.templeId || 'tirumala-main',
-        startDate: targetEvent.startDate || '2026-07-27',
-        endDate: targetEvent.endDate || '2026-07-27',
-        category: targetEvent.category || 'brahmotsavam',
-        vahanam: targetEvent.vahanam || '',
-        description: targetEvent.description || '',
-        descriptionTe: targetEvent.descriptionTe || '',
-        imageUrl: targetEvent.imageUrl || '',
-        images: getInitialImages(targetEvent)
-      });
-    } else {
-      setEventForm({
-        title: '',
-        titleTe: '',
-        templeId: 'tirumala-main',
-        startDate: getTodayIST(),
-        endDate: getTodayIST(),
-        category: 'brahmotsavam',
-        vahanam: '',
-        description: '',
-        descriptionTe: '',
-        imageUrl: '',
-        images: [{ url: '', caption: '' }]
-      });
-    }
-  }, [targetEvent]);
-
-  const handleAddImageField = () => {
-    setEventForm(prev => ({
-      ...prev,
-      images: [...prev.images, { url: '', caption: '' }]
-    }));
-  };
-
-  const handleRemoveImageField = (index) => {
-    setEventForm(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index)
-    }));
-  };
-
-  const handleImageFieldChange = (index, field, value) => {
-    setEventForm(prev => {
-      const updated = [...prev.images];
-      const cleanVal = field === 'url' ? normalizeImageUrl(value) : value;
-      updated[index] = { ...updated[index], [field]: cleanVal };
-      return { ...prev, images: updated };
-    });
-  };
 
   // Feedback State
   const [feedbackStatusFilter, setFeedbackStatusFilter] = useState('all');
@@ -215,38 +135,6 @@ const handleLogin = async (e) => {
     );
   }
 };
-
-  const handleSaveEvent = (e) => {
-    e.preventDefault();
-    if (!eventForm.title.trim()) return;
-
-    const cleanedImages = (eventForm.images || [])
-      .filter(img => img.url && img.url.trim() !== '')
-      .map(img => ({ url: img.url.trim(), caption: (img.caption || '').trim() }));
-
-    const eventPayload = {
-      ...eventForm,
-      images: cleanedImages,
-      imageUrl: cleanedImages.length > 0 ? cleanedImages[0].url : ''
-    };
-
-    if (targetEvent) {
-      onUpdateEvent({
-        ...targetEvent,
-        ...eventPayload
-      });
-      alert(lang === 'en' ? 'Event updated live on website!' : 'ఉత్సవం నవీకరించబడింది!');
-    } else {
-      const newEvt = {
-        id: `custom-evt-${Date.now()}`,
-        ...eventPayload
-      };
-      onAddEvent(newEvt);
-      alert(lang === 'en' ? 'New event added live on website!' : 'కొత్త ఉత్సవం జతచేయబడింది!');
-    }
-
-    onClose();
-  };
 
   // Feedback filter logic
   const filteredFeedback = (feedbackList || []).filter(item => {
@@ -410,252 +298,19 @@ const handleLogin = async (e) => {
           </form>
         )}
 
-        {/* 2. EDIT / ADD EVENT MODE */}
-        {isAdminLoggedIn && (activeAdminTab === 'edit-event' || activeAdminTab === 'add-event') && (
-          <form onSubmit={handleSaveEvent} className="space-y-4">
-            <div className="flex items-center gap-2 border-b border-[#D4AF37]/30 pb-3">
-              <Edit2 className="w-5 h-5 text-[#FF5722]" />
-              <h3 className="font-serif text-lg font-bold text-white">
-                {targetEvent ? `Edit Event: ${targetEvent.title}` : 'Add New Temple Event'}
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-bold text-[#FFD700] block mb-1">Event Title (English) *</label>
-                <input
-                  type="text"
-                  value={eventForm.title}
-                  onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
-                  placeholder="e.g. Srivari Brahmotsavam"
-                  className="w-full px-3 py-2 rounded-xl bg-[#141923] border border-[#D4AF37]/50 text-white text-xs"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-[#FFD700] block mb-1">Event Title (Telugu)</label>
-                <input
-                  type="text"
-                  value={eventForm.titleTe}
-                  onChange={(e) => setEventForm({ ...eventForm, titleTe: e.target.value })}
-                  placeholder="ఉత్సవం పేరు"
-                  className="w-full px-3 py-2 rounded-xl bg-[#141923] border border-[#D4AF37]/50 text-white text-xs"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label className="text-xs font-bold text-[#FFD700] block mb-1">Temple Shrine</label>
-                <select
-                  value={eventForm.templeId}
-                  onChange={(e) => setEventForm({ ...eventForm, templeId: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#141923] border border-[#D4AF37]/50 text-[#FFD700] text-xs font-bold"
-                >
-                  {TEMPLES.map(t => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-[#FFD700] block mb-1">Start Date *</label>
-                <input
-                  type="date"
-                  value={eventForm.startDate}
-                  onChange={(e) => setEventForm({ ...eventForm, startDate: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#141923] border border-[#D4AF37]/50 text-white text-xs font-mono"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-[#FFD700] block mb-1">End Date *</label>
-                <input
-                  type="date"
-                  value={eventForm.endDate}
-                  onChange={(e) => setEventForm({ ...eventForm, endDate: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#141923] border border-[#D4AF37]/50 text-white text-xs font-mono"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* EVENT PHOTOS & CAPTIONS MANAGER */}
-            <div className="space-y-3 p-3.5 rounded-xl bg-[#141923] border border-[#D4AF37]/40">
-              <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-[#FFD700]">
-                  <Image className="w-4 h-4 text-[#FF5722]" />
-                  <span>Event Photos & Captions ({eventForm.images ? eventForm.images.length : 0})</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleAddImageField}
-                  className="px-2.5 py-1 rounded bg-[#FF5722] hover:bg-[#E65100] text-white text-[10px] font-extrabold flex items-center gap-1 shadow"
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>Add Photo</span>
-                </button>
-              </div>
-
-              {eventForm.images.map((imgObj, idx) => (
-                <div key={idx} className="p-2.5 rounded-lg bg-[#0B0E14] border border-white/10 space-y-2 relative group">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-white/80">
-                    <span>Photo #{idx + 1} {idx === 0 ? '(Main Cover Photo)' : ''}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImageField(idx)}
-                      className="text-red-400 hover:text-red-300 p-1 flex items-center gap-1 bg-red-950/60 border border-red-500/40 px-2 py-0.5 rounded"
-                      title="Remove / delete photo"
-                    >
-                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                      <span className="text-[10px]">Remove Photo</span>
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-[10px] font-bold text-[#FFD700]">Image URL *</label>
-                        <label className="cursor-pointer text-[10px] font-extrabold text-[#FFD700] hover:text-white bg-[#FF5722]/30 hover:bg-[#FF5722]/60 border border-[#FF5722]/60 px-2 py-0.5 rounded flex items-center gap-1 transition-colors shadow">
-                          <Upload className="w-3 h-3 text-[#FFD700]" />
-                          <span>📁 Upload from PC</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={async (e) => {
-                              const file = e.target.files && e.target.files[0];
-                              if (file) {
-                                try {
-                                  const eventFolder = targetEvent?.id || eventForm.title || 'event';
-                                  const storageRes = await uploadFileToSupabaseStorage(file, eventFolder);
-                                  if (storageRes.success && storageRes.publicUrl) {
-                                    handleImageFieldChange(idx, 'url', storageRes.publicUrl);
-                                  } else {
-                                    console.warn('Supabase storage upload failed:', storageRes.message);
-                                    const compressedDataUrl = await compressImageFile(file);
-                                    handleImageFieldChange(idx, 'url', compressedDataUrl);
-                                    alert(`⚠️ Could not upload directly to Supabase Storage (${storageRes.message || 'Check Admin -> Cloud Sync credentials & Storage RLS policies'}). Image saved to browser cache.`);
-                                  }
-                                } catch (err) {
-                                  console.error(err);
-                                  const compressedDataUrl = await compressImageFile(file);
-                                  handleImageFieldChange(idx, 'url', compressedDataUrl);
-                                }
-                              }
-                            }}
-                          />
-                        </label>
-                      </div>
-                      <input
-                        type="text"
-                        value={imgObj.url}
-                        onChange={(e) => handleImageFieldChange(idx, 'url', e.target.value)}
-                        onBlur={(e) => handleImageFieldChange(idx, 'url', normalizeImageUrl(e.target.value))}
-                        placeholder="https://... or click Upload from PC"
-                        className="w-full px-2.5 py-1.5 rounded-lg bg-[#141923] border border-[#D4AF37]/40 text-white text-xs font-mono"
-                      />
-                      <span className="text-[9px] text-[#94A3B8] block mt-0.5">
-                        💡 Tip: Click "📁 Upload from PC" to select a photo from your computer, or paste a URL!
-                      </span>
-                    </div>
-
-                    <div>
-                      <label className="text-[10px] font-bold text-[#FFD700] block mb-0.5">Caption / Title</label>
-                      <input
-                        type="text"
-                        value={imgObj.caption}
-                        onChange={(e) => handleImageFieldChange(idx, 'caption', e.target.value)}
-                        placeholder="e.g. Malayappa swami Chinna Sesha Vahanam"
-                        className="w-full px-2.5 py-1.5 rounded-lg bg-[#141923] border border-[#D4AF37]/40 text-white text-xs"
-                      />
-                    </div>
-                  </div>
-
-                  {imgObj.url && (
-                    <div className="h-20 w-full rounded-xl overflow-hidden border border-[#D4AF37]/40 mt-1 bg-[#141923] relative">
-                      <img 
-                        src={normalizeImageUrl(imgObj.url)} 
-                        alt="Photo Preview" 
-                        className="w-full h-full object-cover" 
-                        onError={(e) => { 
-                          e.target.parentElement.innerHTML = '<div className="p-2 text-[10px] text-amber-400 font-mono text-center">⚠️ Invalid image URL. Ensure URL points directly to an image (.jpg, .png, .webp).</div>'; 
-                        }} 
-                      />
-                      <span className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/80 rounded text-[9px] text-[#FFD700] font-bold border border-[#FFD700]/30">
-                        Live Preview
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-[#FFD700] block mb-1">Description</label>
-              <textarea
-                rows={3}
-                value={eventForm.description}
-                onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-[#141923] border border-[#D4AF37]/50 text-white text-xs"
-              ></textarea>
-            </div>
-
-          <div className="flex justify-between items-center gap-2 pt-2">
-  <div>
-    {targetEvent && (
-      <button
-        type="button"
-        onClick={async () => {
-          const confirmed = window.confirm(
-            lang === 'en'
-              ? `Are you sure you want to permanently delete "${targetEvent.title}"?\n\nThis action cannot be undone.`
-              : `మీరు "${targetEvent.title}" ఉత్సవాన్ని శాశ్వతంగా తొలగించాలనుకుంటున్నారా?\n\nఈ చర్యను రద్దు చేయలేరు.`
-          );
-
-          if (!confirmed) return;
-
-          try {
-            await onDeleteEvent(targetEvent.id);
-            onClose();
-          } catch (error) {
-            console.error('Delete event failed:', error);
-            alert(
-              lang === 'en'
-                ? 'Failed to delete the event. Please try again.'
-                : 'ఉత్సవాన్ని తొలగించడం విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి.'
-            );
-          }
-        }}
-        className="px-4 py-2 rounded-xl bg-red-950/70 hover:bg-red-900 text-red-300 hover:text-white border border-red-500/50 text-xs font-bold flex items-center gap-2 transition-colors"
-      >
-        <Trash2 className="w-3.5 h-3.5" />
-        Delete Event
-      </button>
-    )}
-  </div>
-
-  <div className="flex gap-2">
-    <button
-      type="button"
-      onClick={onClose}
-      className="px-4 py-2 rounded-xl bg-[#141923] text-white border border-white/20 text-xs font-bold"
-    >
-      Cancel
-    </button>
-
-    <button
-      type="submit"
-      className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#FF5722] to-[#FFD700] text-black font-extrabold text-xs shadow-lg"
-    >
-      {targetEvent ? 'Save Changes' : 'Publish Event Live'}
-    </button>
-  </div>
-</div>
-          </form>
-        )}
+       {/* 2. EDIT / ADD EVENT MODE */}
+{isAdminLoggedIn &&
+  (activeAdminTab === 'edit-event' ||
+    activeAdminTab === 'add-event') && (
+    <AdminEventEditor
+      lang={lang}
+      targetEvent={targetEvent}
+      onAddEvent={onAddEvent}
+      onUpdateEvent={onUpdateEvent}
+      onDeleteEvent={onDeleteEvent}
+      onClose={onClose}
+    />
+)}
 
         {/* 3. FEEDBACK INBOX MODE */}
         {isAdminLoggedIn && activeAdminTab === "feedback-inbox" && (
