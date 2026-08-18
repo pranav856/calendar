@@ -4,6 +4,7 @@
  */
 import { CLOUD_CONFIG } from "../config/cloudConfig";
 import { STORAGE_KEYS } from "../config/storageKeys";
+import { supabase } from "./supabaseClient";
 
 const STORAGE_KEY_CONFIG = STORAGE_KEYS.CLOUD_CONFIG;
 const STORAGE_KEY_LAST_SYNC = STORAGE_KEYS.CLOUD_LAST_SYNC;
@@ -41,206 +42,75 @@ function updateLastSyncTimestamp() {
 /**
  * Sync events array to cloud endpoint (or save locally if offline/no endpoint)
  */
+
 export async function pushEventsToCloud(events) {
-  const config = getCloudConfig();
+  try {
+    // Make sure an authenticated Supabase session exists.
+    const {
+      data: { session },
+      error: sessionError
+    } = await supabase.auth.getSession();
 
-  // If valid endpoint is specified, send HTTP request
-  if (config.endpointUrl && config.endpointUrl.trim() !== '') {
-    try {
-      let targetUrl = config.endpointUrl.trim().replace(/\/$/, '');
-      
-      // Auto-format Supabase REST API endpoint if user entered base Supabase URL or rest/v1 URL
-      if (targetUrl.includes('.supabase.co')) {
-        if (!targetUrl.includes('/rest/v1')) {
-          targetUrl = `${targetUrl}/rest/v1/events`;
-        } else if (targetUrl.endsWith('/rest/v1')) {
-          targetUrl = `${targetUrl}/events`;
-        } else if (!targetUrl.endsWith('/events')) {
-          targetUrl = `${targetUrl}/events`;
-        }
-      } else if (!targetUrl.endsWith('/events')) {
-        targetUrl = `${targetUrl}/events`;
-      }
-
-      const apiKey = (config.apiKey || '').trim();
-
-      if (apiKey && !targetUrl.includes('apikey=')) {
-        const sep = targetUrl.includes('?') ? '&' : '?';
-        targetUrl = `${targetUrl}${sep}apikey=${encodeURIComponent(apiKey)}`;
-      }
-
-      // Supabase PostgREST requires on_conflict parameter when Prefer: resolution=merge-duplicates is sent
-      if (!targetUrl.includes('on_conflict=')) {
-        const sep = targetUrl.includes('?') ? '&' : '?';
-        targetUrl = `${targetUrl}${sep}on_conflict=id`;
-      }
-
-      const payload = JSON.stringify(events.map(e => ({
-        id: String(e.id),
-        title: e.title,
-        title_te: e.titleTe || e.title,
-        temple_id: e.templeId,
-        start_date: e.startDate,
-        end_date: e.endDate,
-        category: e.category,
-        vahanam: e.vahanam || '',
-        description: e.description || '',
-        description_te: e.descriptionTe || '',
-        image_url: e.imageUrl || '',
-        images: e.images || []
-      })));
-
-      let response = await fetch(targetUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': apiKey,
-          'Authorization': apiKey ? `Bearer ${apiKey}` : '',
-          'Prefer': 'resolution=merge-duplicates,return=representation'
-        },
-        body: payload
-      });
-
-      // Fallback: If bulk merge-duplicates upsert fails (e.g. missing primary key constraint on 'id' column in Postgres), execute per-event PATCH/POST
-      if (!response.ok && (response.status === 400 || response.status === 405 || response.status === 409)) {
-        console.warn('Bulk on_conflict upsert failed, retrying with individual event PATCH/POST requests...');
-        const cleanBaseUrl = targetUrl.split('/events')[0] + '/events';
-        let patchSuccess = true;
-        let patchError = null;
-
-        for (const evt of events) {
-          const evtId = String(evt.id);
-          const evtPayload = JSON.stringify([{
-            id: evtId,
-            title: evt.title,
-            title_te: evt.titleTe || evt.title,
-            temple_id: evt.templeId,
-            start_date: evt.startDate,
-            end_date: evt.endDate,
-            category: evt.category,
-            vahanam: evt.vahanam || '',
-            description: evt.description || '',
-            description_te: evt.descriptionTe || '',
-            image_url: evt.imageUrl || ''
-          }]);
-
-          const patchUrl = `${cleanBaseUrl}?id=eq.${encodeURIComponent(evtId)}${apiKey ? `&apikey=${encodeURIComponent(apiKey)}` : ''}`;
-          
-          let patchResp = await fetch(patchUrl, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': apiKey,
-              'Authorization': apiKey ? `Bearer ${apiKey}` : '',
-              'Prefer': 'return=representation'
-            },
-            body: JSON.stringify({
-              title: evt.title,
-              title_te: evt.titleTe || evt.title,
-              temple_id: evt.templeId,
-              start_date: evt.startDate,
-              end_date: evt.endDate,
-              category: evt.category,
-              vahanam: evt.vahanam || '',
-              description: evt.description || '',
-              description_te: evt.descriptionTe || '',
-              image_url: evt.imageUrl || ''
-            })
-          });
-
-          let patchedData = [];
-          if (patchResp.ok) {
-            try { patchedData = await patchResp.json(); } catch { }
-          }
-
-          // If row doesn't exist in Supabase DB yet, insert via POST
-          if (!patchResp.ok || (Array.isArray(patchedData) && patchedData.length === 0)) {
-            const postUrl = `${cleanBaseUrl}${apiKey ? `?apikey=${encodeURIComponent(apiKey)}` : ''}`;
-            const postResp = await fetch(postUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': apiKey,
-                'Authorization': apiKey ? `Bearer ${apiKey}` : '',
-                'Prefer': 'return=representation'
-              },
-              body: evtPayload
-            });
-            if (!postResp.ok) {
-              patchSuccess = false;
-              try {
-                const errJson = await postResp.json();
-                patchError = errJson.message || errJson.hint || postResp.statusText;
-              } catch {
-                patchError = `HTTP ${postResp.status}`;
-              }
-            }
-          }
-        }
-
-        if (patchSuccess) {
-          const syncTime = updateLastSyncTimestamp();
-          return { success: true, isError: false, message: '✅ All Events & Photos Synchronized to Supabase Cloud Successfully!', timestamp: syncTime };
-        } else {
-          throw new Error(`Cloud Sync failed: ${patchError || 'Database write error'}`);
-        }
-      }
-
-      if (!response.ok) {
-        let responseErrText = '';
-        try {
-          const errJson = await response.json();
-          responseErrText = errJson.message || errJson.hint || errJson.details || JSON.stringify(errJson);
-        } catch {
-          responseErrText = await response.text();
-        }
-
-        if (response.status === 404) {
-          throw new Error(`Supabase Table 'events' not found (HTTP 404). Please run the SQL Setup Script in Supabase!`);
-        }
-        if (response.status === 401 || response.status === 403) {
-          throw new Error(`Supabase Permission Denied (HTTP ${response.status}): ${responseErrText || 'Check API Key & RLS Policies in Supabase'}`);
-        }
-        throw new Error(`Supabase (HTTP ${response.status}): ${responseErrText || response.statusText}`);
-      }
-
-      // Check if rows were actually updated/inserted (or blocked by RLS)
-      try {
-        const returnedData = await response.json();
-        if (Array.isArray(returnedData) && returnedData.length === 0) {
-          throw new Error(`Supabase RLS Policy blocked the update (0 rows written). Please run the RLS SQL script in Supabase!`);
-        }
-      } catch (e) {
-        if (e.message && e.message.includes('RLS Policy blocked')) throw e;
-      }
-
-      const syncTime = updateLastSyncTimestamp();
-      return { success: true, isError: false, message: '✅ All Events & Photos Synchronized to Supabase Cloud Successfully!', timestamp: syncTime };
-    } catch (err) {
-      console.warn('Cloud sync error:', err);
-      const syncTime = updateLastSyncTimestamp();
-      const errMsg = err.message && err.message.includes('Failed to fetch')
-        ? 'Network Connection Failed to reach Supabase. Check your Supabase URL & Internet Connection.'
-        : err.message;
-      return { 
-        success: false, 
-        isError: true, 
-        message: `❌ Sync Failed: ${errMsg}`, 
-        timestamp: syncTime 
-      };
+    if (sessionError) {
+      throw sessionError;
     }
-  }
 
-  // Local Sync message when no endpoint URL is provided
-  await new Promise(resolve => setTimeout(resolve, 300));
-  const syncTime = updateLastSyncTimestamp();
-  return {
-    success: true,
-    isLocalOnly: true,
-    message: 'Local Cache Synced (Enter Supabase Endpoint URL & API Key below to enable Live Cloud Database)',
-    timestamp: syncTime
-  };
+    if (!session) {
+      throw new Error('Admin authentication session not found. Please log in again.');
+    }
+
+    const payload = events.map(e => ({
+      id: String(e.id),
+      title: e.title,
+      title_te: e.titleTe || e.title,
+      temple_id: e.templeId,
+      start_date: e.startDate,
+      end_date: e.endDate,
+      category: e.category,
+      vahanam: e.vahanam || '',
+      description: e.description || '',
+      description_te: e.descriptionTe || '',
+      image_url: e.imageUrl || '',
+      images: e.images || []
+    }));
+
+    const { data, error } = await supabase
+      .from('events')
+      .upsert(payload, {
+        onConflict: 'id'
+      })
+      .select();
+
+    if (error) {
+      console.error('Supabase event sync error:', error);
+      throw new Error(
+        error.message || 'Supabase database write failed.'
+      );
+    }
+
+    const syncTime = updateLastSyncTimestamp();
+
+    return {
+      success: true,
+      isError: false,
+      message: `✅ ${data?.length || payload.length} Events Synchronized to Supabase Cloud Successfully!`,
+      timestamp: syncTime
+    };
+
+  } catch (err) {
+    console.warn('Cloud sync error:', err);
+
+    const syncTime = updateLastSyncTimestamp();
+
+    return {
+      success: false,
+      isError: true,
+      message: `❌ Sync Failed: ${err.message || 'Database write error'}`,
+      timestamp: syncTime
+    };
+  }
 }
+
 
 /**
  * Fetch remote events from cloud endpoint
@@ -316,108 +186,205 @@ if (
  * Supports Option 1 subfolder structure: event-photos/<folderOrId>/<filename>
  */
 export async function uploadFileToSupabaseStorage(file, folderOrId = '') {
-  const config = getCloudConfig();
-  if (!config.endpointUrl || !config.apiKey) {
-    return { success: false, message: 'Cloud credentials missing in Admin -> Cloud Sync.' };
-  }
-
   try {
-    let baseUrl = config.endpointUrl.trim().replace(/\/$/, '');
-    if (baseUrl.includes('.supabase.co')) {
-      baseUrl = baseUrl.split('.supabase.co')[0] + '.supabase.co';
+    const {
+      data: { session },
+      error: sessionError
+    } = await supabase.auth.getSession();
+
+    if (sessionError) {
+      throw sessionError;
     }
 
-    const ext = (file.name || 'image.jpg').split('.').pop() || 'jpg';
-    const filename = `utsavam_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
-    
-    // Clean folder / eventId slug if provided
-    const cleanFolder = folderOrId ? String(folderOrId).trim().replace(/[^a-zA-Z0-9_-]/g, '_') : '';
-    const objectPath = cleanFolder ? `${cleanFolder}/${filename}` : filename;
-    const uploadUrl = `${baseUrl}/storage/v1/object/event-photos/${objectPath}`;
-
-    const apiKey = config.apiKey.trim();
-
-    const response = await fetch(uploadUrl, {
-      method: 'POST',
-      headers: {
-        'apikey': apiKey,
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': file.type || 'image/jpeg',
-        'x-upsert': 'true'
-      },
-      body: file
-    });
-
-    if (!response.ok) {
-      let errText = '';
-      try {
-        const errJson = await response.json();
-        errText = errJson.message || errJson.error || JSON.stringify(errJson);
-      } catch {
-        errText = await response.text();
-      }
-      throw new Error(`Storage error (${response.status}): ${errText}`);
+    if (!session) {
+      return {
+        success: false,
+        message: 'Admin authentication session not found. Please log in again.'
+      };
     }
 
-    const publicUrl = `${baseUrl}/storage/v1/object/public/event-photos/${objectPath}`;
-    return { success: true, publicUrl, objectPath };
+    const ext =
+      (file.name || 'image.jpg').split('.').pop() || 'jpg';
+
+    const filename =
+      `utsavam_${Date.now()}_${Math.random()
+        .toString(36)
+        .substring(2, 8)}.${ext}`;
+
+    const cleanFolder = folderOrId
+      ? String(folderOrId)
+          .trim()
+          .replace(/[^a-zA-Z0-9_-]/g, '_')
+      : '';
+
+    const objectPath = cleanFolder
+      ? `${cleanFolder}/${filename}`
+      : filename;
+
+    const { error } = await supabase.storage
+      .from('event-photos')
+      .upload(objectPath, file, {
+        contentType: file.type || 'image/jpeg',
+        upsert: true
+      });
+
+    if (error) {
+      console.error('Supabase Storage upload error:', error);
+
+      return {
+        success: false,
+        message: error.message || 'Storage upload failed.'
+      };
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from('event-photos')
+      .getPublicUrl(objectPath);
+
+    return {
+      success: true,
+      publicUrl: publicUrlData.publicUrl,
+      path: objectPath,
+      message: 'Image uploaded successfully to Supabase Storage.'
+    };
+
   } catch (err) {
-    console.warn('Supabase Storage upload warning:', err);
-    return { success: false, message: err.message };
+    console.error('Storage upload error:', err);
+
+    return {
+      success: false,
+      message: err.message || 'Storage upload failed.'
+    };
   }
 }
 
 export async function deleteEventFromCloud(eventId) {
-  const config = getCloudConfig();
-
-  if (!config.endpointUrl || !config.apiKey) {
-    return {
-      success: false,
-      message: "Cloud configuration missing."
-    };
-  }
-
   try {
-    let targetUrl = config.endpointUrl.trim().replace(/\/$/, "");
+    const {
+      data: { session },
+      error: sessionError
+    } = await supabase.auth.getSession();
 
-    if (targetUrl.includes(".supabase.co")) {
-      if (!targetUrl.includes("/rest/v1")) {
-        targetUrl = `${targetUrl}/rest/v1/events`;
-      } else if (!targetUrl.endsWith("/events")) {
-        targetUrl = `${targetUrl}/events`;
+    if (sessionError) {
+      throw sessionError;
+    }
+
+    if (!session) {
+      return {
+        success: false,
+        message: 'Admin authentication session not found. Please log in again.'
+      };
+    }
+
+    // 1. Get the event first so we know which Storage files belong to it.
+    const { data: event, error: fetchError } = await supabase
+      .from('events')
+      .select('id, images, image_url')
+      .eq('id', String(eventId))
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('Supabase event lookup error:', fetchError);
+
+      return {
+        success: false,
+        message: fetchError.message || 'Could not find event before deletion.'
+      };
+    }
+
+    // 2. Collect Storage paths from the event.
+    const storagePaths = [];
+
+    if (event?.images && Array.isArray(event.images)) {
+      event.images.forEach((img) => {
+        const url = typeof img === 'string' ? img : img?.url;
+
+        if (!url) return;
+
+        const marker = '/storage/v1/object/public/event-photos/';
+
+        if (url.includes(marker)) {
+          const path = decodeURIComponent(
+            url.split(marker)[1].split('?')[0]
+          );
+
+          if (path) {
+            storagePaths.push(path);
+          }
+        }
+      });
+    }
+
+    // Also handle the older single-image field.
+    if (event?.image_url) {
+      const marker = '/storage/v1/object/public/event-photos/';
+
+      if (event.image_url.includes(marker)) {
+        const path = decodeURIComponent(
+          event.image_url.split(marker)[1].split('?')[0]
+        );
+
+        if (path) {
+          storagePaths.push(path);
+        }
       }
     }
 
-    const apiKey = config.apiKey.trim();
+    // Remove duplicate paths.
+    const uniqueStoragePaths = [...new Set(storagePaths)];
 
-    targetUrl =
-      `${targetUrl}?id=eq.${encodeURIComponent(eventId)}`;
+    // 3. Delete the Storage files first.
+    if (uniqueStoragePaths.length > 0) {
+      const { error: storageError } = await supabase.storage
+        .from('event-photos')
+        .remove(uniqueStoragePaths);
 
-    const response = await fetch(targetUrl, {
-      method: "DELETE",
-      headers: {
-        apikey: apiKey,
-        Authorization: `Bearer ${apiKey}`,
-        Prefer: "return=representation"
+      if (storageError) {
+        console.error(
+          'Supabase Storage delete error:',
+          storageError
+        );
+
+        return {
+          success: false,
+          message:
+            storageError.message ||
+            'Event found, but associated photos could not be deleted.'
+        };
       }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Delete failed (${response.status})`);
     }
 
-    updateLastSyncTimestamp();
+    // 4. Delete the event database row.
+    const { error: deleteError } = await supabase
+      .from('events')
+      .delete()
+      .eq('id', String(eventId));
+
+    if (deleteError) {
+      console.error(
+        'Supabase event delete error:',
+        deleteError
+      );
+
+      return {
+        success: false,
+        message: deleteError.message || 'Supabase delete failed.'
+      };
+    }
 
     return {
-      success: true
+      success: true,
+      message:
+        `Event ${eventId} and ${uniqueStoragePaths.length} associated photo(s) ` +
+        'deleted successfully from Supabase.'
     };
 
   } catch (err) {
-    console.warn(err);
+    console.error('Cloud delete error:', err);
 
     return {
       success: false,
-      message: err.message
+      message: err.message || 'Cloud delete failed.'
     };
   }
 }

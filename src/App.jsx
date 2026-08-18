@@ -683,6 +683,7 @@ console.log("deleteEventFromCloud called", eventId);
       onClose={() => setAdminModalMode(null)}
       lang={lang}
       events={safeEventsList}
+      login={login}
       onAddEvent={handleAddEvent}
       onUpdateEvent={handleUpdateEvent}
       onDeleteEvent={handleDeleteEvent}

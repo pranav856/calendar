@@ -1,19 +1,53 @@
-import usePersistentState from "./usePersistentState";
-import { STORAGE_KEYS } from "../config/storageKeys";
+import { useEffect, useState } from "react";
+import { supabase } from "../utils/supabaseClient";
 
 export default function useAdmin() {
-  const [isAdminLoggedIn, setIsAdminLoggedIn] =
-    usePersistentState(
-      STORAGE_KEYS.ADMIN_SESSION,
-      false
-    );
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
 
-  const login = () => {
-    setIsAdminLoggedIn(true);
+  useEffect(() => {
+    let mounted = true;
+
+    // Check whether a Supabase Auth session already exists
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted) {
+        setIsAdminLoggedIn(!!session);
+      }
+    });
+
+    // Keep React state synchronized with Supabase Auth
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mounted) {
+        setIsAdminLoggedIn(!!session);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const login = async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
   };
 
-  const logout = () => {
-    setIsAdminLoggedIn(false);
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      throw error;
+    }
   };
 
   return {
