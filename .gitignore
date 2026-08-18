@@ -5,3 +5,4 @@ dist
 .env
 .env.local
 README_DETAILED.md
+supabase/backups/
