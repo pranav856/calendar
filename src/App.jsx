@@ -1,7 +1,5 @@
 import { pullGlossaryFromCloud,saveGlossaryTermToCloud } from "./utils/glossaryCloud";
 import useEvents from "./hooks/useEvents";
-import {loadStoredEvents,saveStoredEvents,loadDeletedEventIds,saveDeletedEventIds,} from "./utils/eventStorage";
-import { mergeEvents } from "./utils/eventMerge";
 import useAdmin from "./hooks/useAdmin";
 import useTheme from "./hooks/useTheme";
 import useLocalStorage from "./hooks/usePersistentState";
@@ -12,7 +10,6 @@ import Header from './components/Header';
 import HeroBanner from './components/HeroBanner';
 import TempleList from './components/TempleList';
 import ReferencesList from './components/ReferencesList';
-import {pullEventsFromCloud,pushEventsToCloud,deleteEventFromCloud} from "./utils/cloudSync";
 import { ShieldCheck, LogOut, Edit2, X, ExternalLink, MessageSquare, Plus, Cloud, Lock } from 'lucide-react';
 const CalendarView = lazy(() => import('./components/CalendarView'));
 const DailySchedule = lazy(() => import('./components/DailySchedule'));
@@ -46,7 +43,14 @@ const {themeMode,setThemeMode,toggleTheme,} = useTheme();
   // Dynamic Events State Initializer with complete merge for edited default events & deleted tracking
 
 const [initialEvents, setInitialEvents] = useState(null);
-const [eventsList, setEventsList] = useState([]);
+
+const {
+  events: eventsList,
+  addEvent,
+  updateEvent,
+  deleteEvent,
+  eventsInitialized,
+} = useEvents(initialEvents);
 
 useEffect(() => {
   let cancelled = false;
@@ -66,92 +70,6 @@ useEffect(() => {
   };
 }, []);
 
-useEffect(() => {
-  if (!initialEvents) return;
-
-  try {
-    const deletedIds = loadDeletedEventIds();
-    const storedEvents = loadStoredEvents();
-
-    if (storedEvents) {
-      const parsed = storedEvents;
-
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        setEventsList(
-          mergeEvents(initialEvents, parsed, deletedIds)
-        );
-        return;
-      }
-    }
-
-    setEventsList(
-      initialEvents.filter(
-        initEvt => !deletedIds.has(initEvt.id)
-      )
-    );
-  } catch (e) {
-    console.error('Error loading events from storage:', e);
-    setEventsList(initialEvents);
-  }
-}, [initialEvents]);
-
-useEffect(() => {
-  if (!initialEvents) return;
-
-  saveStoredEvents(eventsList);
-}, [eventsList, initialEvents]);
-
-  // Auto-Pull Events from Cloud Database on Mount if Cloud Configured
-useEffect(() => {
-  if (!initialEvents) return;
-
-  async function syncFromCloudOnMount() {
-      try {
-       const res = await pullEventsFromCloud();
-
-// Cloud Sync not configured yet → silently continue using local data
-if (
-  res.message === "Cloud Sync not configured."
-) {
-  return;
-}
-
-if (
-  res.success &&
-  Array.isArray(res.events) &&
-  res.events.length > 0
-) {
-  const remoteMap = new Map(
-    res.events.map(e => [e.id, e])
-  );
-
-  setEventsList(prevEvents => {
-    const merged = prevEvents.map(localEvt =>
-      remoteMap.has(localEvt.id)
-        ? { ...localEvt, ...remoteMap.get(localEvt.id) }
-        : localEvt
-    );
-
-    const localIds = new Set(
-      prevEvents.map(e => e.id)
-    );
-
-    const newRemoteEvents =
-      res.events.filter(e => !localIds.has(e.id));
-
-    return [...merged, ...newRemoteEvents];
-  });
-}
-      } catch (err) {
-  console.warn(
-    "Cloud auto-pull failed:",
-    err
-  );
-}
-    }
-
-    syncFromCloudOnMount();
-}, [initialEvents]);
 
   // Defensive Community Feedback Submissions State Initializer
   const [feedbackList, setFeedbackList] = useState(() => {
@@ -389,50 +307,9 @@ const handleSaveGlossaryEdit = async (termId, updatedData) => {
   };
 
   // Admin CRUD operations for events
-  const handleAddEvent = (newEvent) => {
-    setEventsList(prev => {
-      const next = [newEvent, ...prev];
-      pushEventsToCloud(next).catch(err => console.warn('Auto cloud sync warning:', err));
-      return next;
-    });
-  };
-
-  const handleUpdateEvent = (updatedEvent) => {
-    setEventsList(prev => {
-      const next = prev.map(e => e.id === updatedEvent.id ? updatedEvent : e);
-      pushEventsToCloud(next).catch(err => console.warn('Auto cloud sync warning:', err));
-      return next;
-    });
-  };
-
-const handleDeleteEvent = async (eventId) => {
-  console.log("Delete button pressed:", eventId);
-
-  setEventsList(prev =>
-    prev.filter(e => e.id !== eventId)
-  );
-
-  try {
-
-    const deletedIds = loadDeletedEventIds();
-
-    deletedIds.add(eventId);
-
-    saveDeletedEventIds(deletedIds);
-
-    const result = await deleteEventFromCloud(eventId);
-console.log("deleteEventFromCloud called", eventId);
-    if (!result.success) {
-      console.warn(result.message);
-    } else {
-      console.log("Deleted from cloud:", eventId);
-    }
-
-  } catch (err) {
-    console.error(err);
-  }
-
-};
+  const handleAddEvent = addEvent;
+const handleUpdateEvent = updateEvent;
+const handleDeleteEvent = deleteEvent;
 
   const handleOpenEditModalForEvent = (event) => {
     setTargetEventToEdit(event);
@@ -453,7 +330,7 @@ console.log("deleteEventFromCloud called", eventId);
   const safeFeedbackList = Array.isArray(feedbackList) ? feedbackList : [];
   const newFeedbackCount = safeFeedbackList.filter(f => f.status === 'New').length;
 
-  if (!initialEvents) {
+  if (!eventsInitialized) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0B0E14]">
       <div className="text-[#FFD700] font-serif text-lg">
