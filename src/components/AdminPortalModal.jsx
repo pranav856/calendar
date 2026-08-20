@@ -346,8 +346,6 @@ const handleLogin = async (e) => {
     setGlossaryForm={setGlossaryForm}
     onSaveGlossaryEdit={onSaveGlossaryEdit}
     onClose={onClose}
-    uploadFileToSupabaseStorage={uploadFileToSupabaseStorage}
-    compressImageFile={compressImageFile}
   />
 )}
 
