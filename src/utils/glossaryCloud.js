@@ -1,4 +1,5 @@
 import { getCloudConfig } from "./cloudSync";
+import { supabase } from "./supabaseClient";
 
 export async function pullGlossaryFromCloud() {
   const config = getCloudConfig();
@@ -70,29 +71,27 @@ return {
 }
 
 export async function saveGlossaryTermToCloud(term) {
-  const config = getCloudConfig();
-
-  if (
-    !config.endpointUrl ||
-    !config.apiKey ||
-    !term
-  ) {
+  if (!term) {
     return {
       success: false,
-      message: "Cloud configuration missing."
+      message: "Glossary term is missing."
     };
   }
 
   try {
-    let url = config.endpointUrl.replace(/\/$/, "");
+    const {
+      data: { session },
+      error: sessionError
+    } = await supabase.auth.getSession();
 
-    if (
-      url.includes(".supabase.co") &&
-      !url.includes("/rest/v1")
-    ) {
-      url += "/rest/v1/glossary";
-    } else if (!url.endsWith("/glossary")) {
-      url += "/glossary";
+    if (sessionError) {
+      throw sessionError;
+    }
+
+    if (!session) {
+      throw new Error(
+        "Admin authentication session not found. Please log in again."
+      );
     }
 
     const payload = {
@@ -103,36 +102,30 @@ export async function saveGlossaryTermToCloud(term) {
       meaning_te: term.shortDescTe,
       description: term.detailedMeaning,
       description_te: term.detailedMeaningTe,
-      category: term.category,
-      images: term.images || []
+      category: term.category || "general",
+      images: Array.isArray(term.images)
+        ? term.images
+        : []
     };
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        apikey: config.apiKey,
-        Authorization: `Bearer ${config.apiKey}`,
-        "Content-Type": "application/json",
-        Prefer: "resolution=merge-duplicates"
-      },
-      body: JSON.stringify(payload)
-    });
+    const { data, error } = await supabase
+      .from("glossary")
+      .upsert(payload, {
+        onConflict: "id"
+      })
+      .select();
 
-   if (!response.ok) {
-  let err;
+    if (error) {
+      console.error("Supabase glossary sync error:", error);
+      throw new Error(
+        error.message || "Supabase glossary write failed."
+      );
+    }
 
-  try {
-    err = await response.json();
-  } catch {
-    err = await response.text();
-  }
-
-  console.log("Supabase Error:", err);
-
-  throw new Error(`Cloud Error ${response.status}`);
-}
-
-    return { success: true };
+    return {
+      success: true,
+      data
+    };
 
   } catch (err) {
     console.error(err);
@@ -145,5 +138,51 @@ export async function saveGlossaryTermToCloud(term) {
 }
 
 export async function deleteGlossaryTermFromCloud(termId) {
+  if (!termId) {
+    return {
+      success: false,
+      message: "Glossary term ID is missing."
+    };
+  }
 
+  try {
+    const {
+      data: { session },
+      error: sessionError
+    } = await supabase.auth.getSession();
+
+    if (sessionError) {
+      throw sessionError;
+    }
+
+    if (!session) {
+      throw new Error(
+        "Admin authentication session not found. Please log in again."
+      );
+    }
+
+    const { error } = await supabase
+      .from("glossary")
+      .delete()
+      .eq("id", termId);
+
+    if (error) {
+      console.error("Supabase glossary delete error:", error);
+      throw new Error(
+        error.message || "Supabase glossary delete failed."
+      );
+    }
+
+    return {
+      success: true
+    };
+
+  } catch (err) {
+    console.error(err);
+
+    return {
+      success: false,
+      message: err.message
+    };
+  }
 }

@@ -1,4 +1,4 @@
-import { pullGlossaryFromCloud,saveGlossaryTermToCloud } from "./utils/glossaryCloud";
+import { pullGlossaryFromCloud, saveGlossaryTermToCloud, deleteGlossaryTermFromCloud} from "./utils/glossaryCloud";
 import useEvents from "./hooks/useEvents";
 import useAdmin from "./hooks/useAdmin";
 import useTheme from "./hooks/useTheme";
@@ -249,6 +249,58 @@ const handleSaveGlossaryEdit = async (termId, updatedData) => {
   } else {
     console.log("✅ Glossary synced to cloud");
   }
+};
+
+const handleDeleteGlossaryTerm = async (termId) => {
+  if (!termId) return;
+
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this glossary term?"
+  );
+
+  if (!confirmed) return;
+
+  const result = await deleteGlossaryTermFromCloud(termId);
+
+  if (!result.success) {
+    console.warn(
+      "Glossary cloud delete failed:",
+      result.message
+    );
+
+    alert(
+      `Glossary cloud delete failed: ${result.message}`
+    );
+
+    return;
+  }
+
+  // Remove from local custom glossary edits
+  setCustomGlossaryEdits(prev => {
+    const next = { ...prev };
+
+    delete next[termId];
+
+    try {
+      localStorage.setItem(
+        "tirumala_custom_glossary_edits",
+        JSON.stringify(next)
+      );
+    } catch (e) {
+      console.error(e);
+    }
+
+    return next;
+  });
+
+  // Clear the selected glossary term
+  setTargetGlossaryTermId(null);
+  setTargetGlossaryTermToEdit(null);
+
+  // Close the admin editor
+  setAdminModalMode(null);
+
+  console.log("✅ Glossary term deleted from cloud");
 };
 
   // Direct Glossary Navigation State
@@ -572,6 +624,7 @@ const handleDeleteEvent = deleteEvent;
       onDeleteFeedback={handleDeleteFeedback}
       targetGlossaryTerm={targetGlossaryTermToEdit}
       onSaveGlossaryEdit={handleSaveGlossaryEdit}
+      onDeleteGlossaryTerm={handleDeleteGlossaryTerm}
       ttdLiveUrl={ttdLiveUrl}
       onSaveTtdLiveUrl={handleSaveTtdLiveUrl}
     />

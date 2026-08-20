@@ -5,7 +5,8 @@ import AdminCloudSync from "./admin/AdminCloudSync";
 import AdminEventEditor from "./admin/AdminEventEditor";
 import React, { useState, useEffect } from 'react';
 import { X, Plus, ShieldCheck, Lock, LogOut, MessageSquare, FileSpreadsheet, Search, Eye, CheckCircle, Cloud, RefreshCw, Database, Server, Video, } from 'lucide-react';
-import { getCloudConfig, saveCloudConfig, pushEventsToCloud, getLastSyncTime } from '../utils/cloudSync';
+import {getCloudConfig, saveCloudConfig, pushEventsToCloud, getLastSyncTime, uploadFileToSupabaseStorage } from '../utils/cloudSync';
+import { compressImageFile } from '../utils/eventStatus';
 
 export default function AdminPortalModal({
   mode, // 'login' | 'edit-event' | 'feedback-inbox' | 'edit-glossary' | 'youtube-live'
@@ -13,6 +14,7 @@ export default function AdminPortalModal({
   lang,
   events,
   onAddEvent,
+  onDeleteGlossaryTerm,
   onUpdateEvent,
   onDeleteEvent,
   isAdminLoggedIn,
@@ -29,6 +31,7 @@ export default function AdminPortalModal({
 }) {
   // Admin Navigation State
   const [activeAdminTab, setActiveAdminTab] = useState(mode || 'feedback-inbox');
+  const [isAddingGlossary, setIsAddingGlossary] = useState(false);
 
   useEffect(() => {
     if (mode) setActiveAdminTab(mode);
@@ -59,20 +62,20 @@ export default function AdminPortalModal({
     images: getInitialGlossaryImages(targetGlossaryTerm)
   });
 
-  useEffect(() => {
-    if (targetGlossaryTerm) {
-      setGlossaryForm({
-        id: targetGlossaryTerm.id || '',
-        term: targetGlossaryTerm.term || '',
-        termTe: targetGlossaryTerm.termTe || '',
-        shortDesc: targetGlossaryTerm.shortDesc || '',
-        shortDescTe: targetGlossaryTerm.shortDescTe || '',
-        detailedMeaning: targetGlossaryTerm.detailedMeaning || '',
-        detailedMeaningTe: targetGlossaryTerm.detailedMeaningTe || '',
-        images: getInitialGlossaryImages(targetGlossaryTerm)
-      });
-    }
-  }, [targetGlossaryTerm]);
+useEffect(() => {
+  if (targetGlossaryTerm && !isAddingGlossary) {
+    setGlossaryForm({
+      id: targetGlossaryTerm.id || '',
+      term: targetGlossaryTerm.term || '',
+      termTe: targetGlossaryTerm.termTe || '',
+      shortDesc: targetGlossaryTerm.shortDesc || '',
+      shortDescTe: targetGlossaryTerm.shortDescTe || '',
+      detailedMeaning: targetGlossaryTerm.detailedMeaning || '',
+      detailedMeaningTe: targetGlossaryTerm.detailedMeaningTe || '',
+      images: getInitialGlossaryImages(targetGlossaryTerm)
+    });
+  }
+}, [targetGlossaryTerm, isAddingGlossary]);
 
   // Login Form State
   const [username, setUsername] = useState('');
@@ -182,7 +185,7 @@ const handleLogin = async (e) => {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div 
+      <div
         className="glass-card max-w-2xl w-full p-6 relative animate-slide-up bg-[#0B0E14] border-2 border-[#FFD700] shadow-2xl rounded-2xl space-y-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
@@ -221,6 +224,22 @@ const handleLogin = async (e) => {
               <Plus className="w-3.5 h-3.5" />
               <span>{targetEvent ? 'Edit Event' : 'Add Event'}</span>
             </button>
+
+            <button
+  type="button"
+  onClick={() => {
+    setIsAddingGlossary(false);
+    setActiveAdminTab('edit-glossary');
+  }}
+  className={`px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all ${
+    activeAdminTab === 'edit-glossary'
+      ? 'bg-gradient-to-r from-[#FF5722] to-[#FFD700] text-black shadow'
+      : 'bg-[#141923] text-[#FFD700] border border-[#D4AF37]/40 hover:bg-[#D4AF37]/20'
+  }`}
+>
+  <FileSpreadsheet className="w-3.5 h-3.5" />
+  <span>Glossary</span>
+</button>
 
             <button
               type="button"
@@ -341,15 +360,44 @@ const handleLogin = async (e) => {
 )}
 
 {activeAdminTab === "edit-glossary" && (
-  <AdminGlossaryEditor
+  <>
+    <div className="flex justify-end">
+      <button
+        type="button"
+        onClick={() => {
+  setIsAddingGlossary(true);
+  setGlossaryForm({
+    id: `custom-glossary-${Date.now()}`,
+    term: '',
+    termTe: '',
+    shortDesc: '',
+    shortDescTe: '',
+    detailedMeaning: '',
+    detailedMeaningTe: '',
+    images: [{ url: '', caption: '' }]
+  });
+}}
+        className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#FF5722] to-[#FFD700] text-black text-xs font-extrabold flex items-center gap-1.5"
+      >
+        <Plus className="w-3.5 h-3.5" />
+        Add New Glossary Term
+      </button>
+    </div>
+
+    <AdminGlossaryEditor
     glossaryForm={glossaryForm}
     setGlossaryForm={setGlossaryForm}
     onSaveGlossaryEdit={onSaveGlossaryEdit}
+    onDeleteGlossaryTerm={onDeleteGlossaryTerm}
     onClose={onClose}
+    isAdding={isAddingGlossary}
+    uploadFileToSupabaseStorage={uploadFileToSupabaseStorage}
+    compressImageFile={compressImageFile}
   />
+  </>
 )}
 
-        {/* YOUTUBE LIVE STREAM CONFIGURATION TAB */}
+      {/* YOUTUBE LIVE STREAM CONFIGURATION TAB */}
         {activeAdminTab === "youtube-live" && (
   <AdminYoutubeSettings
     youtubeInput={youtubeInput}
@@ -362,7 +410,7 @@ const handleLogin = async (e) => {
         {/* FEEDBACK EDIT MODAL POPUP */}
         {selectedFeedbackItem && (
           <div className="modal-overlay z-50" onClick={() => setSelectedFeedbackItem(null)}>
-            <div 
+            <div
               className="glass-card p-5 border-2 border-[#FFD700] max-w-md w-full bg-[#0B0E14] space-y-3 rounded-2xl"
               onClick={(e) => e.stopPropagation()}
             >
