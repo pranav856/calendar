@@ -14,7 +14,8 @@ import { TEMPLES } from '../data/templeEvents';
 import {
   getEventStatus,
   openGoogleCalendar,
-  shareToWhatsApp,
+  openAppleCalendar,
+  shareToPlatform,
   normalizeImageUrl
 } from '../utils/eventStatus';
 
@@ -98,6 +99,28 @@ export default function CalendarScheduleView({
 
   const [activeMonthFilter, setActiveMonthFilter] =
     useState(() => getCurrentMonthKey());
+
+  // Per-event action menus
+  const [openShareMenuId, setOpenShareMenuId] = useState(null);
+  const [openCalendarMenuId, setOpenCalendarMenuId] = useState(null);
+
+  const handleShare = (platform, evt, e) => {
+    e.stopPropagation();
+    shareToPlatform(platform, evt, lang);
+    setOpenShareMenuId(null);
+  };
+
+  const handleCalendar = (type, evt, e) => {
+    e.stopPropagation();
+
+    if (type === 'google') {
+      openGoogleCalendar(evt);
+    } else if (type === 'apple') {
+      openAppleCalendar(evt);
+    }
+
+    setOpenCalendarMenuId(null);
+  };
 
   /*
    * -------------------------------------------------------------
@@ -605,7 +628,7 @@ export default function CalendarScheduleView({
                     ================================================== */}
 
                     <div
-                      className={`flex-grow glass-card p-3.5 sm:p-4 rounded-2xl border border-white/10 group-hover:border-[#FFD700] group-hover:scale-[1.01] transition-all duration-300 shadow-lg group-hover:shadow-2xl relative overflow-hidden flex flex-col sm:flex-row justify-between gap-3 cursor-pointer ${
+                      className={`flex-grow glass-card p-3.5 sm:p-4 rounded-2xl border border-white/10 group-hover:border-[#FFD700] group-hover:scale-[1.01] transition-all duration-300 shadow-lg group-hover:shadow-2xl relative overflow-visible flex flex-col sm:flex-row justify-between gap-3 cursor-pointer ${
                         isToday
                           ? 'ring-1 ring-[#FF5722]/40'
                           : ''
@@ -750,38 +773,111 @@ export default function CalendarScheduleView({
 
                         <div className="flex items-center gap-1.5 ml-auto sm:ml-0">
 
-                          {/* WHATSAPP */}
+                          {/* SHARE MENU */}
 
-                          <button
-                            type="button"
-                            onClick={e => {
-                              e.stopPropagation();
-                              shareToWhatsApp(
-                                evt,
-                                lang
-                              );
-                            }}
-                            className="p-1.5 rounded-lg bg-[#25D366] hover:bg-[#1EBE5B] text-black font-extrabold text-xs shadow"
-                            title="Share to WhatsApp"
-                          >
-                            <Share2 className="w-3.5 h-3.5 text-black" />
-                          </button>
+                          <div className="relative">
+                            <button
+                              type="button"
+                              onClick={e => {
+                                e.stopPropagation();
+                                setOpenCalendarMenuId(null);
+                                setOpenShareMenuId(prev =>
+                                  prev === evt.id ? null : evt.id
+                                );
+                              }}
+                              className="p-1.5 rounded-lg bg-[#FF5722] hover:bg-[#E64A19] text-white font-extrabold text-xs shadow"
+                              title="Share Event"
+                              aria-label="Share Event"
+                            >
+                              <Share2 className="w-3.5 h-3.5 text-white" />
+                            </button>
 
-                          {/* GOOGLE CALENDAR */}
+                            {openShareMenuId === evt.id && (
+                              <div
+                                className="absolute right-0 bottom-full mb-2 z-50 w-48 rounded-xl border border-[#D4AF37]/50 bg-[#0B0E14] shadow-2xl p-2"
+                                onClick={e => e.stopPropagation()}
+                              >
+                                <div className="px-2 py-1.5 text-[10px] font-black uppercase tracking-wider text-[#FFD700] border-b border-white/10 mb-1">
+                                  {lang === 'en' ? 'Share Event' : 'ఉత్సవాన్ని షేర్ చేయండి'}
+                                </div>
 
-                          <button
-                            type="button"
-                            onClick={e => {
-                              e.stopPropagation();
-                              openGoogleCalendar(
-                                evt
-                              );
-                            }}
-                            className="p-1.5 rounded-lg bg-[#4285F4] hover:bg-[#3367D6] text-white font-extrabold text-xs shadow"
-                            title="Add to Google Calendar"
-                          >
-                            <Calendar className="w-3.5 h-3.5 text-white" />
-                          </button>
+                                <div className="grid grid-cols-2 gap-1">
+                                  {[
+                                    ['whatsapp', 'WhatsApp', 'bg-[#25D366] text-black'],
+                                    ['x', 'X', 'bg-black text-white border border-white/20'],
+                                    ['instagram', 'Instagram', 'bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white'],
+                                    ['facebook', 'Facebook', 'bg-[#1877F2] text-white'],
+                                    ['threads', 'Threads', 'bg-black text-white border border-white/20'],
+                                    ['telegram', 'Telegram', 'bg-[#229ED9] text-white'],
+                                    ['reddit', 'Reddit', 'bg-[#FF4500] text-white'],
+                                    ['copy', 'Copy Link', 'bg-[#141923] text-[#FFD700] border border-[#D4AF37]/40']
+                                  ].map(([platform, label, classes]) => (
+                                    <button
+                                      key={platform}
+                                      type="button"
+                                      onClick={e =>
+                                        handleShare(platform, evt, e)
+                                      }
+                                      className={`px-2 py-2 rounded-lg text-[10px] font-extrabold shadow-sm hover:brightness-110 transition ${classes}`}
+                                    >
+                                      {label}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* CALENDAR MENU */}
+
+                          <div className="relative">
+                            <button
+                              type="button"
+                              onClick={e => {
+                                e.stopPropagation();
+                                setOpenShareMenuId(null);
+                                setOpenCalendarMenuId(prev =>
+                                  prev === evt.id ? null : evt.id
+                                );
+                              }}
+                              className="p-1.5 rounded-lg bg-[#4285F4] hover:bg-[#3367D6] text-white font-extrabold text-xs shadow"
+                              title="Add to Calendar"
+                              aria-label="Add to Calendar"
+                            >
+                              <Calendar className="w-3.5 h-3.5 text-white" />
+                            </button>
+
+                            {openCalendarMenuId === evt.id && (
+                              <div
+                                className="absolute right-0 bottom-full mb-2 z-50 w-44 rounded-xl border border-[#D4AF37]/50 bg-[#0B0E14] shadow-2xl p-2"
+                                onClick={e => e.stopPropagation()}
+                              >
+                                <div className="px-2 py-1.5 text-[10px] font-black uppercase tracking-wider text-[#FFD700] border-b border-white/10 mb-1">
+                                  {lang === 'en' ? 'Add to Calendar' : 'క్యాలెండర్‌కు జోడించండి'}
+                                </div>
+
+                                <button
+                                  type="button"
+                                  onClick={e =>
+                                    handleCalendar('google', evt, e)
+                                  }
+                                  className="w-full px-3 py-2 rounded-lg bg-[#4285F4] hover:bg-[#3367D6] text-white text-xs font-extrabold text-left"
+                                >
+                                  Google Calendar
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={e =>
+                                    handleCalendar('apple', evt, e)
+                                  }
+                                  className="w-full mt-1 px-3 py-2 rounded-lg bg-black hover:bg-slate-900 border border-[#FFD700]/60 text-[#FFD700] text-xs font-extrabold text-left"
+                                >
+                                  Apple Calendar / iCal
+                                </button>
+                              </div>
+                            )}
+                          </div>
 
                           {/* DETAILS */}
 

@@ -138,6 +138,11 @@ export function shareToPlatform(platform, event, lang = 'en') {
       window.open('https://www.instagram.com', '_blank');
       break;
     }
+    case 'telegram': {
+  const url = `https://t.me/share/url?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(shareText)}`;
+  window.open(url, '_blank');
+  break;
+}
     case 'copy': {
       if (navigator.clipboard) {
         navigator.clipboard.writeText(`${shareText}`);
